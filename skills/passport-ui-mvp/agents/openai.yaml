@@ -1,0 +1,3 @@
+display_name: Passport UI MVP
+short_description: Build a simple passport creation UI slice
+default_prompt: Build or refine the MVP visual passport creation flow with reusable components and clear review states.

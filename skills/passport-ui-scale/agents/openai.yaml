@@ -1,0 +1,3 @@
+display_name: Passport UI Scale
+short_description: Scale MVP passport UI safely
+default_prompt: Refactor or extend the passport UI with modular sections and reusable primitives while preserving MVP simplicity.
