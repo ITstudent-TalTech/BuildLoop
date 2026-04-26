@@ -41,3 +41,10 @@ It also assumes the selected stack is:
 The material passport is not a raw source dump.
 
 It is a **reviewable, versioned, evidence-backed representation of a building's reuse-relevant characteristics**.
+
+## Dev mode and UI skills
+
+- Dev workflow recommendation: `DEV_MODE.md`
+- Visual agent skills:
+  - `skills/passport-ui-mvp`
+  - `skills/passport-ui-scale`
