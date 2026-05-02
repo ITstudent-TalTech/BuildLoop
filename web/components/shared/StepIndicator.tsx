@@ -1,7 +1,7 @@
 "use client";
 
 type StepIndicatorProps = {
-  currentStep: 1 | 2 | 3 | 4;
+  currentStep: 0 | 1 | 2 | 3 | 4;
 };
 
 const steps = ["ADDRESS", "RESOLUTION", "DRAFT", "PUBLISHED"] as const;

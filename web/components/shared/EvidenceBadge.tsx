@@ -42,7 +42,9 @@ function ConfidenceCue({ confidence }: { confidence: Confidence }) {
 
   if (confidence === "medium") {
     return (
-      <span className="inline-block size-4 rounded-full border-[1.5px] border-forest" />
+      <span className="inline-flex size-4 items-center justify-center rounded-full border-[1.5px] border-forest">
+        <span className="size-1.5 rounded-full bg-forest" />
+      </span>
     );
   }
 
@@ -87,6 +89,18 @@ export default function EvidenceBadge({
   const titleId = useId();
   const hasSourceData = Boolean(sourcePage || sourceLabel || sourceUrl);
 
+  function handleClick() {
+    if (!isOpen) {
+      window.dispatchEvent(
+        new CustomEvent("buildloop:evidence-badge-open", {
+          detail: triggerRef.current,
+        }),
+      );
+    }
+
+    setIsOpen((prev) => !prev);
+  }
+
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -123,14 +137,36 @@ export default function EvidenceBadge({
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const handleOtherOpen = (event: Event) => {
+      const customEvent = event as CustomEvent<HTMLElement | null>;
+
+      if (customEvent.detail !== triggerRef.current) {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener("buildloop:evidence-badge-open", handleOtherOpen);
+
+    return () => {
+      window.removeEventListener(
+        "buildloop:evidence-badge-open",
+        handleOtherOpen,
+      );
+    };
+  }, [isOpen]);
+
   return (
     <span className={["relative inline-flex", className].filter(Boolean).join(" ")}>
       <button
         aria-expanded={isOpen}
         aria-label={`${confidenceLabels[confidence]} confidence evidence`}
         className="inline-flex size-5 items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-forest/40"
-        onClick={() => setIsOpen((current) => !current)}
-        onMouseEnter={() => setIsOpen(true)}
+        onClick={handleClick}
         ref={triggerRef}
         type="button"
       >

@@ -38,3 +38,7 @@ provides a marketplace for reusable materials.
 - Read the relevant architecture doc before non-trivial changes.
 - Emit a short test or fixture with each component or route.
 - If a design decision conflicts with a doc, flag it — don't silently override.
+
+- Sessions may always update /PROGRESS.md (the cross-cutting progress 
+  log at repo root). This is the only file outside /web/ that frontend 
+  sessions are permitted to modify.

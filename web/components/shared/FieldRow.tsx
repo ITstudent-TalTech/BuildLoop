@@ -36,11 +36,13 @@ export default function FieldRow({
   const isMissing = value == null;
 
   return (
-    <div className="grid grid-cols-[minmax(120px,30%)_1fr_auto] items-baseline gap-4 border-b border-ink/10 py-3 last:border-b-0">
-      <div className="text-sm font-normal leading-5 text-ink-soft">{label}</div>
+    <div className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 border-b border-ink/10 py-3 last:border-b-0 md:grid-cols-[minmax(120px,30%)_1fr_auto] md:items-baseline md:gap-4">
+      <div className="text-xs font-medium uppercase leading-5 tracking-[0.06em] text-ink-soft md:text-sm md:font-normal md:normal-case md:tracking-normal">
+        {label}
+      </div>
       <div
         className={[
-          "break-words text-sm font-normal leading-5",
+          "col-span-2 break-words text-sm font-normal leading-5 md:col-span-1",
           isMissing ? "text-ink-soft" : "text-ink",
           isMono ? "font-mono" : "font-sans",
         ].join(" ")}
@@ -54,7 +56,7 @@ export default function FieldRow({
           </>
         )}
       </div>
-      <div className="flex min-w-16 items-center justify-end self-center">
+      <div className="row-start-1 flex min-w-10 items-center justify-end self-start md:col-start-3 md:min-w-16 md:self-center">
         {isMissing ? (
           <span className="rounded border border-ink/10 bg-surface px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-ink-soft">
             MISSING
