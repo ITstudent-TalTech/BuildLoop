@@ -1,18 +1,23 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Resolve the app/ directory at import time so the .env.local path is
+# absolute and independent of the caller's working directory.
+_APP_DIR = Path(__file__).parent.parent  # …/BuildLoop/app/
+
 
 class Settings(BaseSettings):
-    """Application settings loaded from environment / .env.local.
+    """Application settings loaded from app/.env.local.
 
     Secrets (database_url, supabase_*_key) have no defaults — the app
     will fail at startup with a clear ValidationError if any are missing.
     """
 
     model_config = SettingsConfigDict(
-        env_file=".env.local",
+        env_file=str(_APP_DIR / ".env.local"),
         env_file_encoding="utf-8",
         extra="ignore",
     )

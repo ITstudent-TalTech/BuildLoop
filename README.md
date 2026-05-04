@@ -64,17 +64,21 @@ It is a **reviewable, versioned, evidence-backed representation of a building's 
 
 ### Quick start
 
-```bash
-# 1. Copy env template and fill in real values
-cp .env.example .env.local
+All backend tooling lives in `app/`. Run commands from there.
 
-# 2. Install dependencies (including dev extras)
+```bash
+# 1. Copy env template and fill in real Supabase credentials
+cp app/.env.example app/.env.local
+
+# 2. Install dependencies (from app/ — packages resolve to repo root)
+cd app
 pip install -e ".[dev]"
 
-# 3. Apply database migrations
+# 3. Apply database migrations (run from app/)
 alembic upgrade head
 
-# 4. Run the development server
+# 4. Run the development server (run from repo root)
+cd ..
 uvicorn app.main:app --reload
 ```
 
@@ -96,6 +100,7 @@ http://localhost:8000/v1/health.
 ### Running tests
 
 ```bash
+cd app
 DATABASE_URL_TEST=postgresql+asyncpg://postgres:postgres@localhost:5432/buildloop_test pytest
 ```
 
@@ -105,13 +110,15 @@ unset the suite fails immediately with a clear error.
 ### Key directories
 
 ```
-app/
-  core/       config.py (Pydantic Settings), storage.py (Supabase Storage client)
-  db/         base.py (DeclarativeBase, TimestampMixin), session.py (async engine)
-  models/     One ORM model file per aggregate root (14 tables total)
-  api/routes/ health.py — GET /v1/health
-alembic/
-  versions/   20260503_0001_init_full_schema.py — full baseline migration
-tests/
-  conftest.py, test_health.py, test_config.py
+app/                     ← backend root; run pip/alembic/pytest from here
+  .env.example           ← copy to app/.env.local and fill in credentials
+  pyproject.toml         ← backend deps + tool config
+  alembic.ini            ← alembic config; prepend_sys_path=.. for imports
+  alembic/versions/      ← 20260503_0001_init_full_schema.py — baseline migration
+  tests/                 ← conftest.py, test_health.py, test_config.py
+  core/                  ← config.py (Pydantic Settings), storage.py (Supabase)
+  db/                    ← base.py (DeclarativeBase, TimestampMixin), session.py
+  models/                ← 14 ORM model files, one per aggregate root
+  api/routes/            ← health.py — GET /v1/health
+web/                     ← frontend (Next.js); see web/.env.local for its env vars
 ```

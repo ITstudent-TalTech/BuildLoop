@@ -9,6 +9,7 @@ IMPORTANT — isolation contract:
 """
 
 import os
+from collections.abc import AsyncGenerator
 
 import pytest
 import pytest_asyncio
@@ -24,6 +25,9 @@ if _TEST_DB_URL is None:
         "Tests must never run against the real Supabase database."
     )
 
+# Narrowed to str after the None guard above
+_TEST_DB_URL_STR: str = _TEST_DB_URL
+
 
 @pytest.fixture(scope="session")
 def anyio_backend() -> str:
@@ -31,14 +35,14 @@ def anyio_backend() -> str:
 
 
 @pytest_asyncio.fixture(scope="function")
-async def test_db() -> AsyncSession:
+async def test_db() -> AsyncGenerator[AsyncSession, None]:
     """Async DB session that rolls back after each test.
 
     Each test gets a fresh transaction that is rolled back on teardown —
     no test data persists to the next test, and no cleanup helpers are
     required.
     """
-    engine = create_async_engine(_TEST_DB_URL, echo=False)
+    engine = create_async_engine(_TEST_DB_URL_STR, echo=False)
     factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with engine.begin() as conn:
@@ -50,17 +54,17 @@ async def test_db() -> AsyncSession:
 
 
 @pytest_asyncio.fixture(scope="function")
-async def test_client() -> AsyncClient:
+async def test_client() -> AsyncGenerator[AsyncClient, None]:
     """httpx AsyncClient targeting the FastAPI app.
 
     The Supabase storage check is expected to fail (no real credentials
     in the test environment); this is acceptable — the health endpoint
     reports it as 'unavailable' rather than crashing.
     """
-    # Patch settings before importing app to avoid ValidationError on
-    # missing env vars in CI.  Tests that need real Settings should set
-    # the variables themselves.
-    os.environ.setdefault("DATABASE_URL", _TEST_DB_URL)
+    # Set env vars before importing app to avoid ValidationError on
+    # missing secrets. Tests that need real Settings should set their
+    # own variables.
+    os.environ.setdefault("DATABASE_URL", _TEST_DB_URL_STR)
     os.environ.setdefault("SUPABASE_URL", "http://localhost:54321")
     os.environ.setdefault("SUPABASE_ANON_KEY", "test-anon-key")
     os.environ.setdefault("SUPABASE_SERVICE_ROLE_KEY", "test-service-role-key")

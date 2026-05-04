@@ -4,8 +4,6 @@ These tests verify that Settings raises clearly when required secrets
 are missing, and that values are loaded correctly when present.
 """
 
-import os
-
 import pytest
 from pydantic import ValidationError
 
@@ -17,23 +15,17 @@ def test_settings_raises_when_database_url_missing(monkeypatch: pytest.MonkeyPat
     monkeypatch.delenv("SUPABASE_ANON_KEY", raising=False)
     monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
 
-    # Patch env_file so Settings doesn't pick up .env.local on disk
     from pydantic_settings import BaseSettings, SettingsConfigDict
-    from typing import Literal
-    from functools import lru_cache
 
     class IsolatedSettings(BaseSettings):
-        model_config = SettingsConfigDict(
-            env_file=None,
-            extra="ignore",
-        )
+        model_config = SettingsConfigDict(env_file=None, extra="ignore")
         database_url: str
         supabase_url: str
         supabase_anon_key: str
         supabase_service_role_key: str
 
     with pytest.raises(ValidationError) as exc_info:
-        IsolatedSettings()
+        IsolatedSettings()  # type: ignore[call-arg]
 
     errors = exc_info.value.errors()
     missing_fields = {e["loc"][0] for e in errors}
@@ -56,7 +48,7 @@ def test_settings_loads_values_from_environment(monkeypatch: pytest.MonkeyPatch)
         supabase_anon_key: str
         supabase_service_role_key: str
 
-    s = IsolatedSettings()
+    s = IsolatedSettings()  # type: ignore[call-arg]
     assert s.database_url == "postgresql+asyncpg://user:pass@localhost/test"
     assert s.supabase_url == "https://example.supabase.co"
     assert s.supabase_anon_key == "anon-key-value"

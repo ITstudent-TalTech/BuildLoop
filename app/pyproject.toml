@@ -1,7 +1,7 @@
 [project]
 name = "buildloop-passport-engine"
 version = "0.1.0"
-description = "BUILDLoop passport engine backend scaffold"
+description = "BUILDLoop passport engine backend"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115.0",
@@ -24,21 +24,26 @@ dev = [
   "ruff>=0.6.0",
 ]
 
+# Tell setuptools to look one level up (the repo root) for Python packages.
+# This makes `from app.core.config import ...` work when installed from app/.
+[tool.setuptools.packages.find]
+where = [".."]
+include = ["app*"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+testpaths = ["tests"]
 
 [tool.mypy]
 python_version = "3.11"
 strict = true
 ignore_missing_imports = true
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["app*", "tests*"]
+# mypy_path points to repo root so `import app` resolves correctly
+mypy_path = ".."
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
