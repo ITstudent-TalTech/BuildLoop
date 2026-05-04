@@ -48,3 +48,70 @@ It is a **reviewable, versioned, evidence-backed representation of a building's 
 - Visual agent skills:
   - `skills/passport-ui-mvp`
   - `skills/passport-ui-scale`
+
+---
+
+## Backend (Track 2)
+
+### Stack
+
+- FastAPI + Pydantic v2
+- SQLAlchemy 2.0 async (asyncpg driver)
+- Alembic for schema migrations
+- Supabase (Postgres data plane, Storage for PDFs)
+- Pydantic Settings for environment configuration
+- pytest + pytest-asyncio + factory-boy for tests
+
+### Quick start
+
+```bash
+# 1. Copy env template and fill in real values
+cp .env.example .env.local
+
+# 2. Install dependencies (including dev extras)
+pip install -e ".[dev]"
+
+# 3. Apply database migrations
+alembic upgrade head
+
+# 4. Run the development server
+uvicorn app.main:app --reload
+```
+
+The service starts at http://localhost:8000. The health endpoint is at
+http://localhost:8000/v1/health.
+
+### Environment variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | Yes | Full async URL: `postgresql+asyncpg://...` |
+| `DATABASE_URL_TEST` | Test only | Separate test DB; required to run pytest |
+| `SUPABASE_URL` | Yes | Your Supabase project URL |
+| `SUPABASE_ANON_KEY` | Yes | Supabase anon/public key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service-role key (server use only) |
+| `SUPABASE_STORAGE_SOURCE_BUCKET` | No | Default: `source-documents` |
+| `SUPABASE_STORAGE_PASSPORT_BUCKET` | No | Default: `published-passports` |
+
+### Running tests
+
+```bash
+DATABASE_URL_TEST=postgresql+asyncpg://postgres:postgres@localhost:5432/buildloop_test pytest
+```
+
+Tests never run against the real Supabase. If `DATABASE_URL_TEST` is
+unset the suite fails immediately with a clear error.
+
+### Key directories
+
+```
+app/
+  core/       config.py (Pydantic Settings), storage.py (Supabase Storage client)
+  db/         base.py (DeclarativeBase, TimestampMixin), session.py (async engine)
+  models/     One ORM model file per aggregate root (14 tables total)
+  api/routes/ health.py — GET /v1/health
+alembic/
+  versions/   20260503_0001_init_full_schema.py — full baseline migration
+tests/
+  conftest.py, test_health.py, test_config.py
+```

@@ -1,19 +1,40 @@
 from functools import lru_cache
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    """Application settings loaded from environment / .env.local.
 
-    app_name: str = "BUILDLoop Passport Engine"
-    app_version: str = "0.1.0"
-    environment: str = "dev"
-    api_v1_prefix: str = "/v1"
+    Secrets (database_url, supabase_*_key) have no defaults — the app
+    will fail at startup with a clear ValidationError if any are missing.
+    """
 
-    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/buildloop"
+    model_config = SettingsConfigDict(
+        env_file=".env.local",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    # --- Database ---
+    database_url: str  # full async URL: postgresql+asyncpg://user:pass@host:port/db
+
+    # --- Supabase ---
+    supabase_url: str
+    supabase_anon_key: str
+    supabase_service_role_key: str
+    supabase_storage_source_bucket: str = "source-documents"
+    supabase_storage_passport_bucket: str = "published-passports"
+
+    # --- Runtime ---
+    env: Literal["dev", "staging", "prod"] = "dev"
+    log_level: str = "INFO"
+
+    # --- CORS ---
+    frontend_origin: str = "http://localhost:3000"
 
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    return Settings()  # type: ignore[call-arg]
