@@ -1,8 +1,8 @@
 # BUILDLoop — Progress
 
-Last updated: 2026-05-03
+Last updated: 2026-05-04
 Current phase: Track 2 (backend, script-to-modules)
-Current session: 2.2 (Resolver) — next up
+Current session: 2.3 (Ingestion) — next up
 
 ## Done
 
@@ -64,7 +64,7 @@ Current session: 2.2 (Resolver) — next up
 - ✅ 2.1 — Substrate (Agent 1): async SQLAlchemy + asyncpg, alembic
   baseline matching doc 10, Pydantic Settings, Supabase storage client,
   health endpoint reporting DB + storage status.
-- 📋 2.2 — Resolver (Agent 2): carve from
+- ✅ 2.2 — Resolver (Agent 2): carve from
   `buildloop_passport_from_address.py` into
   `app/services/resolver/` (normalizer, query_variants, inads_adapter,
   candidate_grouper, confidence). Persist resolver runs + candidates.
@@ -150,6 +150,15 @@ sections above.
 - 2026-05-03 — Pre-2.1 prep: PROGRESS.md, /app/AGENTS.md, /app/CLAUDE.md
   staged; /AGENTS.md updated with PROGRESS exception.
 - 2026-05-03 — Session 2.1 complete: backend substrate. Async SQLAlchemy
-  + asyncpg, full ORM model coverage (14 tables), alembic baseline migration
-  matching doc 10, Pydantic Settings, Supabase storage client, health
-  endpoint reporting DB and storage status. Foundation for Track 2 work.
+  - asyncpg, full ORM model coverage (14 tables), alembic baseline migration
+    matching doc 10, Pydantic Settings, Supabase storage client, health
+    endpoint reporting DB and storage status. Foundation for Track 2 work.
+- 2026-05-03 — Session 2.1 complete: backend substrate. 14 tables migrated to Supabase via Session pooler. Health endpoint reports DB + storage. Foundation ready for Track 2 service work.
+- 2026-05-04 — Session 2.2 complete: resolver carved into modules
+  (normalizer, query_variants, inads_adapter, candidate_grouper,
+  confidence, service). /v1/intakes and /v1/resolutions endpoints
+  match doc 11. Fixture-based tests pass for resolved/corner/
+  ambiguous/unresolved cases. SSL fallback preserved behind
+  RESOLVER_INADS_SSL_FALLBACK setting. Two algorithmic deviations
+  from script flagged in DECISIONS.md: +0.05 multi-variant bonus,
+  explicit corner-alias extraction. resolver_version='v1.1.0'.

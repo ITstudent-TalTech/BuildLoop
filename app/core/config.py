@@ -39,6 +39,22 @@ class Settings(BaseSettings):
     # --- CORS ---
     frontend_origin: str = "http://localhost:3000"
 
+    # --- Resolver ---
+    # In-ADS gazetteer base URL (Estonian address register public API)
+    resolver_inads_base_url: str = "https://inaadress.maaamet.ee/inaadress"
+    # Feature layers to request from In-ADS (matches the script default)
+    resolver_inads_features: str = "EHAK,VAIKEKOHT,TANAV,KATASTRIYKSUS,EHITISHOONE"
+    # Retry without SSL certificate verification on TLS error.
+    # Known workaround for Estonian network paths with incomplete cert chains.
+    # Set to false in environments with correct PKI.
+    resolver_inads_ssl_fallback: bool = True
+    # Confidence threshold above which the resolver auto-picks the top candidate.
+    resolver_auto_resolve_threshold: float = 0.85
+    # Confidence threshold above which the result is ambiguous (not unresolved).
+    resolver_ambiguous_threshold: float = 0.50
+    # Semver string stamped on every ResolverRun row for regression tracking.
+    resolver_version: str = "v1.0.0"
+
 
 @lru_cache
 def get_settings() -> Settings:

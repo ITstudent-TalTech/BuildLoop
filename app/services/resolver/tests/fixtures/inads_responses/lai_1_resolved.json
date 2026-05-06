@@ -1,0 +1,16 @@
+{
+  "addresses": [
+    {
+      "ads_oid": "EE00100020010000000001",
+      "taisaadress": "Harju maakond, Tallinn, Kesklinna linnaosa, Lai tn 1",
+      "lahiaadress": "Lai tn 1",
+      "ehr": [
+        {
+          "ehr_kood": "101035685",
+          "taisaadress": "Harju maakond, Tallinn, Kesklinna linnaosa, Lai tn 1",
+          "aadress": "Lai tn 1"
+        }
+      ]
+    }
+  ]
+}

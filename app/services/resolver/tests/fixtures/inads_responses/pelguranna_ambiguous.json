@@ -1,0 +1,28 @@
+{
+  "addresses": [
+    {
+      "ads_oid": "EE00100020020000000001",
+      "taisaadress": "Harju maakond, Tallinn, Põhja-Tallinna linnaosa, Pelguranna tn 14",
+      "lahiaadress": "Pelguranna tn 14",
+      "ehr": [
+        {
+          "ehr_kood": "101234567",
+          "taisaadress": "Harju maakond, Tallinn, Põhja-Tallinna linnaosa, Pelguranna tn 14",
+          "aadress": "Pelguranna tn 14"
+        }
+      ]
+    },
+    {
+      "ads_oid": "EE00100020020000000002",
+      "taisaadress": "Harju maakond, Tallinn, Põhja-Tallinna linnaosa, Pelguranna tn 16",
+      "lahiaadress": "Pelguranna tn 16",
+      "ehr": [
+        {
+          "ehr_kood": "101234568",
+          "taisaadress": "Harju maakond, Tallinn, Põhja-Tallinna linnaosa, Pelguranna tn 16",
+          "aadress": "Pelguranna tn 16"
+        }
+      ]
+    }
+  ]
+}

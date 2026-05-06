@@ -1,0 +1,16 @@
+{
+  "addresses": [
+    {
+      "ads_oid": "EE00100020010000000002",
+      "taisaadress": "Harju maakond, Tallinn, Kesklinna linnaosa, Lai tn 1 // Nunne tn 4",
+      "lahiaadress": "Lai tn 1 // Nunne tn 4",
+      "ehr": [
+        {
+          "ehr_kood": "101035685",
+          "taisaadress": "Harju maakond, Tallinn, Kesklinna linnaosa, Lai tn 1 // Nunne tn 4",
+          "aadress": "Lai tn 1 // Nunne tn 4"
+        }
+      ]
+    }
+  ]
+}
