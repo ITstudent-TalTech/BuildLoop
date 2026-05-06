@@ -55,6 +55,17 @@ class Settings(BaseSettings):
     # Semver string stamped on every ResolverRun row for regression tracking.
     resolver_version: str = "v1.0.0"
 
+    # --- Source ingestion (EHR PDF) ---
+    # Base URL for the Estonian EHR document API.
+    ingest_ehr_base_url: str = "https://livekluster.ehr.ee/api/document/v1"
+    # Retry without SSL certificate verification on TLS error.
+    # Same workaround as resolver_inads_ssl_fallback — Estonian cert chain issues.
+    ingest_ehr_ssl_fallback: bool = True
+    # HTTP timeout in seconds per fetch attempt.
+    # TODO(2.3 review): script uses 90s (line 346); setting defaults to 60s per
+    # session spec. Verify with EHR operator before production; bump if needed.
+    ingest_ehr_timeout_seconds: int = 60
+
 
 @lru_cache
 def get_settings() -> Settings:

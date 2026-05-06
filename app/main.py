@@ -9,6 +9,7 @@ from sqlalchemy import text
 from app.api.routes.health import router as health_router
 from app.api.routes.intakes import router as intakes_router
 from app.api.routes.resolutions import router as resolutions_router
+from app.api.routes.sources import router as sources_router
 from app.core.config import get_settings
 from app.core.storage import list_buckets
 from app.db.session import async_session_factory, engine
@@ -66,6 +67,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router, prefix="/v1")
     app.include_router(intakes_router, prefix="/v1")
     app.include_router(resolutions_router, prefix="/v1")
+    app.include_router(sources_router, prefix="/v1")
 
     return app
 

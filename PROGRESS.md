@@ -69,7 +69,7 @@ Current session: 2.3 (Ingestion) — next up
   `app/services/resolver/` (normalizer, query_variants, inads_adapter,
   candidate_grouper, confidence). Persist resolver runs + candidates.
   Fixture-based tests with real Tallinn cases.
-- 📋 2.3 — Ingestion (Agent 3): EHR PDF fetch into
+- ✅ 2.3 — Ingestion (Agent 3): EHR PDF fetch into
   `app/services/source_ingestion/` with Supabase Storage and
   checksum-based deduplication.
 - 📋 2.4 — Parser (Agent 4): PDF extraction into
@@ -162,3 +162,4 @@ sections above.
   RESOLVER_INADS_SSL_FALLBACK setting. Two algorithmic deviations
   from script flagged in DECISIONS.md: +0.05 multi-variant bonus,
   explicit corner-alias extraction. resolver_version='v1.1.0'.
+- 2026-05-06 — Session 2.3 complete: source ingestion module carved, EHR PDF fetch uploads to Supabase Storage with checksum dedup. /v1/projects/{id}/sources/fetch and GET endpoints match doc 11. Fixture-based tests pass for clean / failure / dedup cases.

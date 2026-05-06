@@ -261,3 +261,32 @@ recursive walk also hits "ehr_kood" inside each item. The original
 script's `seen` set masked this; here, CandidateGroup merging masks it
 instead. Flagged with TODO(2.2 review). To revisit if duplicate-handling
 performance matters at scale.
+
+### Source Ingestion (Session 2.3 — `app/services/source_ingestion/`)
+
+**Upload to Supabase Storage only — no local disk.** The script's
+`fetch_pdf()` writes the PDF bytes to a local `out_path: Path` argument
+(line 348). In `app/services/source_ingestion/`, there is no local disk
+write; bytes go directly to Supabase Storage via `app.core.storage.upload_source_document`.
+Track 2.4 (parser) will retrieve PDF bytes back from Storage. This is
+a deliberate infrastructure decision — see the session 2.3 prompt heading
+"INFRASTRUCTURE DECISION LOCKED".
+
+**Checksum-based dedup scoped to (building_id, checksum).** The reference
+script has no dedup concept — each run creates a new artifact file. The
+service layer adds a dedup check keyed on `(building_id, checksum)` before
+uploading, so the same EHR PDF is stored only once in Supabase Storage
+regardless of how many user projects trigger a fetch. `project_id` is
+still logged on the `source_documents` row for audit. This is a new
+behavior not present in the script.
+
+**URL path verified from script — differs from session prompt.** The
+session 2.3 prompt described the URL as `{EHR_BASE_URL}/{ehr_code}/file`.
+The script (line 341) uses `{EHR_BASE_URL}/pdf/document/file/{ehr_code}`.
+The implementation follows the script as the source of truth.
+`ehr_fetcher.py` has a comment documenting this discrepancy.
+
+**Timeout deviation flagged.** The script uses `timeout=90` (line 346);
+the `INGEST_EHR_TIMEOUT_SECONDS` setting defaults to 60 per the session
+spec. Flagged with `TODO(2.3 review)` in `ehr_fetcher.py`. Verify with
+EHR operator before production; bump the setting if long PDFs require 90s.
