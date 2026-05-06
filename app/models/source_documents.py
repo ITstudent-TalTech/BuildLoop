@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Text, func
+from sqlalchemy import DateTime, ForeignKey, Index, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -18,6 +18,9 @@ class SourceDocument(Base):
     """Metadata record for one fetched source document; binary stored in Supabase Storage."""
 
     __tablename__ = "source_documents"
+    __table_args__ = (
+        Index("idx_source_documents_building_id", "building_id"),
+    )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     building_id: Mapped[UUID | None] = mapped_column(

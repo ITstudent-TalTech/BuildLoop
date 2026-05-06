@@ -1,9 +1,11 @@
 """IntakeService — creates a new intake request and associated project.
 
 Minimal intake creation sufficient for the resolver to have an
-intake_request_id to work with. The project_id is stored in
-IntakeRequest.normalized_input JSONB so the resolver can retrieve it
-without requiring an additional FK column (no new migration needed).
+intake_request_id to work with. The project_id is stored on the proper
+FK column intake_requests.project_id (migration 734960e74be2).
+
+normalized_input is initialized to {} here; the resolver populates it
+with the parsed address shape during resolution.
 """
 
 from __future__ import annotations
@@ -33,10 +35,8 @@ class IntakeService:
     Outputs:
       IntakeCreated with both IDs and status="received".
     Persistence:
-      - One intake_requests row (status="received").
       - One projects row (status="draft", raw_input_address=address_input).
-      - IntakeRequest.normalized_input contains {"project_id": str(project.id)}
-        so ResolverService can find the project without a direct FK column.
+      - One intake_requests row (status="received", project_id=project.id).
     """
 
     async def create(
@@ -46,7 +46,6 @@ class IntakeService:
         db: AsyncSession,
     ) -> IntakeCreated:
         """Persist an intake request + project pair and return their IDs."""
-        # Create project first so we can store its ID in the intake record.
         project = Project(
             title=project_title,
             raw_input_address=address_input,
@@ -57,7 +56,8 @@ class IntakeService:
 
         intake = IntakeRequest(
             raw_address_input=address_input,
-            normalized_input={"project_id": str(project.id)},
+            normalized_input={},
+            project_id=project.id,
             status="received",
         )
         db.add(intake)

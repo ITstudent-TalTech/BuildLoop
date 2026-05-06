@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, Text, func
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, Numeric, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -18,6 +18,12 @@ class Observation(Base):
     """Canonical extracted fact with full provenance back to its source document."""
 
     __tablename__ = "observations"
+    __table_args__ = (
+        Index("idx_observations_building_id", "building_id"),
+        Index("idx_observations_project_id", "project_id"),
+        Index("idx_observations_namespace_key", "namespace", "key"),
+        Index("idx_observations_relevance_class", "relevance_class"),
+    )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     building_id: Mapped[UUID | None] = mapped_column(

@@ -6,7 +6,7 @@ Maps to: public.buildings (doc 10)
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import Numeric, Text
+from sqlalchemy import Index, Numeric, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -15,6 +15,9 @@ from app.db.base import Base, TimestampMixin
 
 class Building(Base, TimestampMixin):
     __tablename__ = "buildings"
+    __table_args__ = (
+        Index("idx_buildings_primary_ehr_code", "primary_ehr_code"),
+    )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     country_code: Mapped[str] = mapped_column(Text, nullable=False, server_default="EE")

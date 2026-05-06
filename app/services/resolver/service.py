@@ -1,7 +1,7 @@
 """ResolverService — orchestrates address-to-EHR resolution with full persistence.
 
 Workflow per resolve():
-  1. Load IntakeRequest; extract project_id from normalized_input JSONB.
+  1. Load IntakeRequest; read project_id from intake_requests.project_id FK column.
   2. Normalize the raw address and generate query variants.
   3. Call In-ADS once per variant; merge candidate groups across variants.
   4. Score candidates; decide resolution status.
@@ -96,15 +96,14 @@ class ResolverService:
         if intake is None:
             raise ValueError(f"IntakeRequest {intake_request_id} not found")
 
-        # 2. Extract project_id stored by IntakeService in normalized_input
-        project_id: UUID | None = None
-        if isinstance(intake.normalized_input, dict):
-            pid_str = intake.normalized_input.get("project_id")
-            if pid_str:
-                try:
-                    project_id = UUID(str(pid_str))
-                except ValueError:
-                    logger.warning("normalized_input.project_id is not a valid UUID: %s", pid_str)
+        # 2. Read project_id from the FK column (set by IntakeService)
+        project_id: UUID | None = intake.project_id
+        if project_id is None:
+            logger.warning(
+                "IntakeRequest %s has no associated project (project_id is None); "
+                "building linkage will be skipped.",
+                intake_request_id,
+            )
 
         # 3. Mark intake as resolving
         intake.status = "resolving"

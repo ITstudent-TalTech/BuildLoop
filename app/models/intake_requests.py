@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Text, func
+from sqlalchemy import DateTime, ForeignKey, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -22,6 +22,9 @@ class IntakeRequest(Base):
     normalized_input: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     country_code: Mapped[str] = mapped_column(Text, nullable=False, server_default="EE")
     status: Mapped[str] = mapped_column(Text, nullable=False, server_default="received")
+    project_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="SET NULL"), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

@@ -230,6 +230,22 @@ Sessions must stay within their assigned directory scope otherwise.
 - [ ] Upgrade Supabase to Pro tier before demos
 - [ ] Create Railway project for FastAPI hosting
 
+## Resolved technical debt
+
+**JSONB-blob FK in intake_requests (resolved in hotfix after 2.3).**
+Initially `project_id` was stored as `{"project_id": str(uuid)}` inside
+`intake_requests.normalized_input` JSONB to avoid creating a migration during
+session 2.2. Replaced with a proper nullable FK column
+(`intake_requests.project_id → projects.id ON DELETE SET NULL`) in migration
+`734960e74be2`. The JSONB approach was rejected because it conflicted with that
+column's intended purpose (storing the resolver's parsed address shape) and
+forced `ResolverService` to carry cross-module knowledge of an internal storage
+convention. The `normalized_input` column remains and is initialized to `{}`
+by `IntakeService`; the resolver will populate it with the parsed address shape
+in a later session.
+
+---
+
 ## Algorithmic deviations from reference scripts
 
 These are intentional changes from the validated extraction scripts at
