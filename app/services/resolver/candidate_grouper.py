@@ -11,6 +11,13 @@ for the same EHR code (e.g. "Lai tn 1" and "Nunne tn 4" both map to EHR
 101035685), or when a single entry already contains "//" in its taisaadress,
 all address strings are collected in address_aliases rather than treated as
 separate buildings.
+
+Real In-ADS response shape (hotfix after 2.2): address fields (taisaadress,
+pikkaadress, etc.) live on the OUTER addresses[] entry, not on the inner ehr[]
+item. The inner item carries only building metadata (ehitise_nimetus, seisund,
+kasutusotstarbed, etc.). collect_raw_hits() now uses _structured_walk() as the
+primary path and falls back to the generic recursive walker for non-standard
+shapes.
 """
 
 from __future__ import annotations
@@ -21,8 +28,51 @@ from app.services.resolver.types import CandidateGroup, QueryVariant
 
 
 # ---------------------------------------------------------------------------
-# Internal helpers lifted verbatim from the script
+# Internal helpers
 # ---------------------------------------------------------------------------
+
+
+def _structured_walk(data: Any) -> list[dict[str, Any]]:
+    """Walk the standard In-ADS addresses[].ehr[] structure.
+
+    For each address entry that has a non-empty ehr list, emits one raw hit per
+    ehr item with address_context set to the outer address entry.  This is the
+    correct path for real In-ADS responses, where address fields (taisaadress,
+    pikkaadress, etc.) live on the outer node, not inside the ehr item.
+
+    Returns an empty list if the response does not follow addresses[].ehr[] shape,
+    signalling collect_raw_hits() to fall back to the generic recursive walker.
+    """
+    if not isinstance(data, dict):
+        return []
+    addresses = data.get("addresses")
+    if not isinstance(addresses, list):
+        return []
+
+    bag: list[dict[str, Any]] = []
+    for addr_entry in addresses:
+        if not isinstance(addr_entry, dict):
+            continue
+        ehr_list = addr_entry.get("ehr")
+        if not isinstance(ehr_list, list):
+            continue
+        for ehr_item in ehr_list:
+            if not isinstance(ehr_item, dict):
+                continue
+            code = (
+                ehr_item.get("ehr_kood")
+                or ehr_item.get("ehrcode")
+                or ehr_item.get("ehr_code")
+            )
+            if code:
+                bag.append(
+                    {
+                        "ehr_code": str(code),
+                        "raw_candidate": ehr_item,
+                        "address_context": addr_entry,
+                    }
+                )
+    return bag
 
 
 # TODO(2.2 review): walk_for_ehr_candidates double-adds EHR candidates when the
@@ -33,7 +83,8 @@ from app.services.resolver.types import CandidateGroup, QueryVariant
 def _walk_for_ehr_candidates(node: Any, bag: list[dict[str, Any]]) -> None:
     """Recursively walk an In-ADS JSON tree collecting EHR code entries.
 
-    Appends dicts of the form {"ehr_code": str, "raw_candidate": dict} to bag.
+    Fallback walker for non-standard response shapes.  Appends dicts of the form
+    {"ehr_code": str, "raw_candidate": dict} to bag (no address_context key).
     Lifted verbatim from walk_for_ehr_candidates() in the script (line 173).
     """
     if isinstance(node, dict):
@@ -58,10 +109,20 @@ def _walk_for_ehr_candidates(node: Any, bag: list[dict[str, Any]]) -> None:
 def _extract_candidate_address(candidate: dict[str, Any]) -> str | None:
     """Extract the best address string from a raw candidate entry.
 
-    Tries a prioritised list of well-known In-ADS field names, first on the
-    raw_candidate dict itself, then one level deep into its sub-dicts.
-    Lifted verbatim from extract_candidate_address() in the script (line 191).
+    Checks address_context first (outer address node in real In-ADS responses,
+    where taisaadress and pikkaadress live), then falls back to raw_candidate
+    (inner ehr item or direct dict from the generic recursive walker).
+    Extended from extract_candidate_address() in the script (line 191).
     """
+    # Real In-ADS shape: address fields on the outer address entry
+    ctx = candidate.get("address_context") or {}
+    if isinstance(ctx, dict):
+        for key in ("taisaadress", "pikkaadress", "aadresstekst", "lahiaadress", "aadress"):
+            value = ctx.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+
+    # Fallback: inner ehr item or direct node (generic recursive walker hits)
     raw = candidate.get("raw_candidate", {})
     if not isinstance(raw, dict):
         return None
@@ -175,9 +236,17 @@ def group_candidates(
     return list(groups.values())
 
 
-def collect_raw_hits(data: object) -> list[dict[str, object]]:
-    """Public wrapper: walk an In-ADS response JSON tree and return all EHR hits."""
-    bag: list[dict[str, object]] = []
+def collect_raw_hits(data: object) -> list[dict[str, Any]]:
+    """Walk an In-ADS response and return all EHR hits.
+
+    Primary path: _structured_walk() handles real In-ADS addresses[].ehr[]
+    responses where address fields live on the outer address node.
+    Fallback: generic recursive walker for non-standard response shapes.
+    """
+    structured = _structured_walk(data)
+    if structured:
+        return structured
+    bag: list[dict[str, Any]] = []
     _walk_for_ehr_candidates(data, bag)
     return bag
 

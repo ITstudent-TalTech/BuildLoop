@@ -164,3 +164,4 @@ sections above.
   explicit corner-alias extraction. resolver_version='v1.1.0'.
 - 2026-05-06 — Session 2.3 complete: source ingestion module carved, EHR PDF fetch uploads to Supabase Storage with checksum dedup. /v1/projects/{id}/sources/fetch and GET endpoints match doc 11. Fixture-based tests pass for clean / failure / dedup cases.
 - 2026-05-06 — Hotfix on 2.1/2.2: declared 6 missing indexes on models (no migration needed); replaced JSONB project_id workaround in IntakeService with proper FK column on intake_requests. Migration 734960e74be2 applied to Supabase. alembic check clean. 60 resolver tests pass, mypy clean.
+- 2026-05-07 — Resolver hotfix: candidate walker rewritten to handle real In-ADS response shape (addresses[].ehr[] with address fields on outer node). Synthetic fixtures replaced with real captured API response for Lai 1, 10133 Tallinn. End-to-end smoke test against live In-ADS now produces expected resolved status with corner aliases.

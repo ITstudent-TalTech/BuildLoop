@@ -7,6 +7,7 @@ from typing import Any
 from app.services.resolver.candidate_grouper import (
     _extract_corner_aliases,
     _walk_for_ehr_candidates,
+    collect_raw_hits,
     group_candidates,
     merge_variant_groups,
 )
@@ -72,9 +73,8 @@ def test_walk_ignores_non_dict_list_items() -> None:
 
 def test_group_single_match() -> None:
     raw = _fixture("lai_1_resolved.json")
-    bag: list[Any] = []
-    _walk_for_ehr_candidates(raw, bag)
-    groups = group_candidates(bag)
+    hits = collect_raw_hits(raw)
+    groups = group_candidates(hits)
     codes = {g.ehr_code for g in groups}
     assert "101035685" in codes
 
@@ -91,11 +91,10 @@ def test_group_filters_non_numeric_ehr() -> None:
 
 
 def test_corner_address_aliases_from_slash() -> None:
-    """A single entry with // in taisaadress should produce address_aliases."""
+    """Real In-ADS corner address response must produce address_aliases from outer taisaadress."""
     raw = _fixture("lai_1_corner.json")
-    bag: list[Any] = []
-    _walk_for_ehr_candidates(raw, bag)
-    groups = group_candidates(bag)
+    hits = collect_raw_hits(raw)
+    groups = group_candidates(hits)
     assert len(groups) == 1
     grp = groups[0]
     assert grp.ehr_code == "101035685"
@@ -178,3 +177,27 @@ def test_extract_corner_aliases_short_form() -> None:
 def test_extract_corner_aliases_non_corner() -> None:
     aliases = _extract_corner_aliases("Tallinn, Lai tn 1")
     assert aliases == []
+
+
+# ---------------------------------------------------------------------------
+# Regression: real In-ADS response shape
+# ---------------------------------------------------------------------------
+
+
+def test_real_inads_response_lai_1_extracts_corner_aliases() -> None:
+    """Regression: real In-ADS response for Lai 1 must produce a candidate with
+    ehr_code=101035685, normalized_address containing '//', and both street aliases.
+
+    Verifies the structured walker reads taisaadress from the outer address node,
+    not from the inner ehr item (which has no address fields in real responses).
+    """
+    with open(FIXTURES / "lai_1_corner_REAL.json", encoding="utf-8") as f:
+        response_data = json.load(f)
+    raw_hits = collect_raw_hits(response_data)
+    groups = group_candidates(raw_hits, QueryVariant("exact", "Lai 1, 10133 Tallinn"))
+    assert any(g.ehr_code == "101035685" for g in groups)
+    target = next(g for g in groups if g.ehr_code == "101035685")
+    assert target.normalized_address is not None
+    assert "//" in target.normalized_address
+    assert "Lai tn 1" in target.address_aliases
+    assert "Nunne tn 4" in target.address_aliases

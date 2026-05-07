@@ -232,6 +232,24 @@ Sessions must stay within their assigned directory scope otherwise.
 
 ## Resolved technical debt
 
+**Resolver candidate walker rewritten to handle real In-ADS response shape (resolved in hotfix after 2.3).**
+The original `_walk_for_ehr_candidates` recursive walker captured inner `ehr[]`
+items as `raw_candidate`, but in real In-ADS responses those items contain only
+building metadata (`ehitise_nimetus`, `seisund`, etc.) — address fields
+(`taisaadress`, `pikkaadress`, etc.) live on the OUTER `addresses[]` entry.
+The result was that `_extract_candidate_address` always returned `None` for real
+API responses, making `score_candidate` produce 0.10 (only the numeric-EHR-code
+bonus) for every candidate, below the 0.85 auto-resolve threshold.
+
+Fix: added `_structured_walk()` that iterates `addresses[].ehr[]` and attaches
+the outer address entry as `address_context` to each raw hit. Updated
+`_extract_candidate_address` to check `address_context` first. `collect_raw_hits`
+now uses `_structured_walk` as primary path with the generic recursive walker as
+fallback for non-standard shapes. All five synthetic fixtures replaced with or
+validated against the real captured API response for Lai 1, 10133 Tallinn
+(`lai_1_corner_REAL.json`). 61 resolver tests pass; end-to-end smoke test against
+live In-ADS produces resolved status with corner aliases for Lai 1, 10133 Tallinn.
+
 **JSONB-blob FK in intake_requests (resolved in hotfix after 2.3).**
 Initially `project_id` was stored as `{"project_id": str(uuid)}` inside
 `intake_requests.normalized_input` JSONB to avoid creating a migration during
