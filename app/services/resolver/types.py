@@ -70,6 +70,9 @@ class CandidateGroup:
     matched_variants: list[QueryVariant] = field(default_factory=list)
     """Which query variants produced a hit for this EHR code."""
 
+    in_ads_primary: bool = False
+    """True when In-ADS marked this address entry with primary='true' (canonical match signal)."""
+
 
 @dataclass
 class ScoredCandidate:

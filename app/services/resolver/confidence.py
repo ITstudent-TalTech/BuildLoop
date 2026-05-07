@@ -47,6 +47,7 @@ def score_candidate(
                         "harju","estonia"}                       [max 0.12]
       numeric_ehr     : 0.10 if the EHR code is all digits
       multi_variant   : 0.05 if the same EHR was found by > 1 variant  [NEW]
+      in_ads_primary  : 0.10 if In-ADS marked this entry primary='true'  [NEW]
       cap             : min(score, 0.99)
     """
     reasons: list[str] = []
@@ -92,6 +93,13 @@ def score_candidate(
     if len(matched_variants) > 1:
         score += 0.05
         reasons.append(f"multi_variant_match={len(matched_variants)}")
+
+    # --- In-ADS primary signal (additive, not in original script) ---
+    # In-ADS marks the canonical result for a query with primary='true'.
+    # This is a strong authoritative-match signal from the gazetteer itself.
+    if candidate.in_ads_primary:
+        score += 0.10
+        reasons.append("in_ads_primary")
 
     return ScoredCandidate(
         ehr_code=candidate.ehr_code,

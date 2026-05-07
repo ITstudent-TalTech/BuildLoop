@@ -281,6 +281,18 @@ candidates scoring 0.81–0.85 in the script can now auto-resolve at
 0.86–0.90 if found by ≥2 variants. Resolver version bumped to
 v1.1.0 to flag the deviation in `address_resolution_runs.resolver_version`.
 
+**In-ADS primary signal.** `score_candidate()` adds +0.10 when the
+candidate's outer `addresses[]` entry was marked `primary='true'` by
+In-ADS. The script has no equivalent — it treats all candidates equally.
+In-ADS marks `primary='true'` on the authoritative canonical match for a
+query; capturing this as a scoring signal prevents near-threshold candidates
+from requiring the multi-variant bonus to auto-resolve. Effect: a candidate
+that scores 0.78 on token overlap, house number, and locality alone reaches
+0.88 with the primary bonus — above the 0.85 threshold — without any
+multi-variant matching. `CandidateGroup.in_ads_primary` is the carrier field;
+`_structured_walk()` captures it from the outer address entry. Resolver
+version bumped to v1.2.0.
+
 **Corner-address alias extraction.** `_extract_corner_aliases()` in
 candidate_grouper.py splits a `//`-composite address into individual
 street-name aliases. The script doesn't emit clean alias lists — it

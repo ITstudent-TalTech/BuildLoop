@@ -70,6 +70,7 @@ def _structured_walk(data: Any) -> list[dict[str, Any]]:
                         "ehr_code": str(code),
                         "raw_candidate": ehr_item,
                         "address_context": addr_entry,
+                        "in_ads_primary": addr_entry.get("primary") == "true",
                     }
                 )
     return bag
@@ -214,11 +215,14 @@ def group_candidates(
                 raw_hits=[c],
                 object_types=[],
                 matched_variants=[matched_variant] if matched_variant else [],
+                in_ads_primary=bool(c.get("in_ads_primary")),
             )
         else:
             # Same EHR code: merge address aliases (corner-address handling)
             grp = groups[ehr_code]
             grp.raw_hits.append(c)
+            if c.get("in_ads_primary"):
+                grp.in_ads_primary = True
             if addr:
                 corner_aliases = _extract_corner_aliases(addr)
                 new_addrs = corner_aliases if corner_aliases else [addr]

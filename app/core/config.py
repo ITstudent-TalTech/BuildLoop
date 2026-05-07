@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     # Confidence threshold above which the result is ambiguous (not unresolved).
     resolver_ambiguous_threshold: float = 0.50
     # Semver string stamped on every ResolverRun row for regression tracking.
-    resolver_version: str = "v1.0.0"
+    resolver_version: str = "v1.2.0"
 
     # --- Source ingestion (EHR PDF) ---
     # Base URL for the Estonian EHR document API.

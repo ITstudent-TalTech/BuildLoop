@@ -5,6 +5,10 @@ and that decide_status enforces the no-silent-weak-selection criterion
 from doc 12 Agent 2 acceptance criteria.
 """
 
+import json
+from pathlib import Path
+
+from app.services.resolver.candidate_grouper import collect_raw_hits, group_candidates
 from app.services.resolver.confidence import decide_status, score_candidate
 from app.services.resolver.normalizer import normalize_address
 from app.services.resolver.types import (
@@ -14,6 +18,8 @@ from app.services.resolver.types import (
     ResolverThresholds,
     ScoredCandidate,
 )
+
+FIXTURES = Path(__file__).parent / "fixtures" / "inads_responses"
 
 
 # ---------------------------------------------------------------------------
@@ -122,6 +128,51 @@ def test_single_variant_no_multi_boost() -> None:
     grp = _group("101035685", "Harju maakond, Tallinn, Kesklinna linnaosa, Lai tn 1")
     result = score_candidate(inp, grp, [_V_EXACT])
     assert not any("multi_variant_match" in r for r in result.match_reasons)
+
+
+def test_in_ads_primary_adds_010() -> None:
+    """in_ads_primary=True contributes exactly +0.10 to the score."""
+    inp = normalize_address("X")
+    # Non-numeric EHR + mismatched address → only the primary bonus fires.
+    grp = _group("NODIGIT", "Y")
+    grp.ehr_code = "NODIGIT"
+    grp.in_ads_primary = True
+    result = score_candidate(inp, grp, [])
+    assert "in_ads_primary" in result.match_reasons
+    assert abs(result.confidence_score - 0.10) < 0.001
+
+
+def test_non_primary_no_boost() -> None:
+    """in_ads_primary=False (default) does not add the primary bonus."""
+    inp = normalize_address("X")
+    grp = _group("NODIGIT", "Y")
+    grp.ehr_code = "NODIGIT"
+    result = score_candidate(inp, grp, [])
+    assert "in_ads_primary" not in result.match_reasons
+    assert result.confidence_score == 0.0
+
+
+def test_real_lai_1_primary_flag_propagates_and_scores_above_threshold() -> None:
+    """Regression: real In-ADS Lai 1 response sets in_ads_primary=True and scores >= 0.85.
+
+    Verifies the full pipeline: _structured_walk captures primary='true' from the
+    outer address entry, group_candidates propagates it onto CandidateGroup, and
+    score_candidate fires the +0.10 bonus, pushing the total above the auto-resolve
+    threshold even before multi-variant matching.
+    """
+    with open(FIXTURES / "lai_1_corner_REAL.json", encoding="utf-8") as f:
+        data = json.load(f)
+
+    hits = collect_raw_hits(data)
+    groups = group_candidates(hits, _V_EXACT)
+
+    target = next(g for g in groups if g.ehr_code == "101035685")
+    assert target.in_ads_primary is True, "EHITISHOONE entry must carry primary=True"
+
+    inp = normalize_address("Lai 1, 10133 Tallinn")
+    scored = score_candidate(inp, target, target.matched_variants)
+    assert scored.confidence_score >= 0.85
+    assert "in_ads_primary" in scored.match_reasons
 
 
 def test_full_lai_1_tallinn_scores_above_threshold() -> None:
