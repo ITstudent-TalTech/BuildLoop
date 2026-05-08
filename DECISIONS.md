@@ -397,3 +397,32 @@ section exists in the source registry but isn't rendered into extractable
 text in this PDF version. Track 2.5's projection layer must treat
 location as a partial section gracefully (don't penalize completeness
 score for buildings whose source PDFs lack geometry text).
+
+---
+
+## API design notes (Session A)
+
+**Consolidated pipeline endpoint.** `POST /v1/projects/{id}/passport-pipeline`
+composes fetch + parse + project in sequence inside one route handler
+(`app/api/routes/passport_pipeline.py`). The four constituent endpoints
+(`/sources/fetch`, `/source-documents/{id}/parse`, `/passport-drafts`,
+`/passport-draft`) remain independently exposed for debugging, retry, and
+admin paths. Pipeline is the convenience path used by the frontend's
+resolved-state transition (Session B); the others are operational tools.
+
+**No pipeline service module.** The composition logic lives entirely in the
+route handler — no `app/services/pipeline/` was added. Orchestration that is
+purely "call A then call B then call C" belongs at the route layer, not in
+a service. Services own domain logic; routes own request/response flow.
+
+**Skip-reparse on dedup.** When fetch returns `fetch_status='deduped'` AND the
+source_document already has a completed extraction_run, the pipeline reads that
+run's id rather than calling `parse_source_document` again. Avoids redundant PDF
+processing on repeat demo clicks for the same building. The existing run's
+`extraction_run_id` flows through to the pipeline response unchanged.
+
+**Failure short-circuit semantics.** Each stage's failure returns immediately
+with a structured `PipelineFailureResponse` (status, stage, error) and preserves
+whatever partial state was written (so errors are auditable). HTTP 502 for
+upstream failures (EHR fetch, Supabase Storage), HTTP 500 for internal failures
+(projection engine exception).

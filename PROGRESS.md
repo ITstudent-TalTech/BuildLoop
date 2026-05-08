@@ -165,7 +165,27 @@ sections above.
 - 2026-05-06 — Session 2.3 complete: source ingestion module carved, EHR PDF fetch uploads to Supabase Storage with checksum dedup. /v1/projects/{id}/sources/fetch and GET endpoints match doc 11. Fixture-based tests pass for clean / failure / dedup cases.
 - 2026-05-06 — Hotfix on 2.1/2.2: declared 6 missing indexes on models (no migration needed); replaced JSONB project_id workaround in IntakeService with proper FK column on intake_requests. Migration 734960e74be2 applied to Supabase. alembic check clean. 60 resolver tests pass, mypy clean.
 - 2026-05-07 — Resolver hotfix: candidate walker rewritten to handle real In-ADS response shape (addresses[].ehr[] with address fields on outer node). Synthetic fixtures replaced with real captured API response for Lai 1, 10133 Tallinn. End-to-end smoke test against live In-ADS now produces expected resolved status with corner aliases.
-- 2026-05-08 — Resolver hotfix: added in_ads_primary scoring signal (+0.10 when In-ADS marks entry primary='true'). CandidateGroup.in_ads_primary field added; captured in _structured_walk, propagated in group_candidates, scored in score_candidate. 3 new tests. resolver_version bumped to v1.2.0. 64 resolver tests pass.
+- 2026-05-08 — Resolver hotfix: added in_ads_primary scoring signal (+0.10 when In-ADS marks entry primary='true'). CandidateGroup.in_ads_primary field added; captured in \_structured_walk, propagated in group_candidates, scored in score_candidate. 3 new tests. resolver_version bumped to v1.2.0. 64 resolver tests pass.
 - 2026-05-08 — Track 2 hotfix: /v1/health now strictly verifies both Supabase Storage buckets exist; reports missing_buckets status when not. Startup warning added. storage='unavailable' now triggers 503. 5 health tests pass.
 - 2026-05-08 — Session 2.4 complete: parser carved into modules with six namespace extractors. Observations persisted with provenance. Integration test against real Lai 1 EHR PDF passes (golden file freezes 31 expected observations). parser_version='v1.0.0'. 66 tests pass, mypy clean, alembic check clean.
 - 2026-05-08 — Session 2.5 complete: relevance engine classifies observations per doc 05's static policy; passport engine projects passport_core + passport_supporting into FieldValue<T>-shaped payload_json. Quality scores and section breakdown computed. Integration test against Lai 1 observations produces schema_completeness_score≈81.6% (31/38 fields), confidence_score≈95.0% (all-high observations). 233 tests pass, mypy clean, alembic check clean. Track 2 half-complete: 2.1-2.5 done, 2.6-2.8 remaining.
+- 2026-05-09 — Session A complete: /v1/projects/{id}/passport-pipeline consolidates fetch + parse + project. Frontend can now request a passport draft with one POST after resolution. Constituent endpoints unchanged. 238 tests pass, mypy clean, alembic check clean.
+
+## Demo MVP path (priority reordering, 2026-05-08)
+
+Originally the plan was complete Track 2 sequentially then Track 3.
+Reordered toward shipping a contractor-demoable MVP with remaining
+weekly Claude Code budget. New priority:
+
+- ✅ A — Backend pipeline endpoint (consolidates fetch+parse+generate)
+- 📋 B — Frontend integration (replace mocks with real fetches)
+- 📋 C — Minimal review/publish backend (no PDF export)
+- 📋 Manual: Railway deploy, Vercel deploy, CORS, smoke test
+
+Deferred until post-demo:
+
+- Track 2.6 (API contract audit — most done implicitly across 2.2-2.5)
+- Track 2.7 PDF export via WeasyPrint
+- Track 2.8 (listing candidates)
+- Track 4 (auth + RLS)
+- Track 5.3 (E2E test suite)
