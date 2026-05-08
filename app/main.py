@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
@@ -11,7 +12,7 @@ from app.api.routes.intakes import router as intakes_router
 from app.api.routes.resolutions import router as resolutions_router
 from app.api.routes.sources import router as sources_router
 from app.core.config import get_settings
-from app.core.storage import list_buckets
+from app.core.storage import get_bucket_names
 from app.db.session import async_session_factory, engine
 
 logger = logging.getLogger(__name__)
@@ -32,11 +33,24 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     except Exception as exc:
         logger.error("Database connectivity FAILED at startup: %s", exc)
 
-    # Startup: verify Supabase reachability (non-fatal)
+    # Startup: verify Supabase Storage reachability and required bucket presence
     try:
-        import asyncio
-        await asyncio.wait_for(list_buckets(), timeout=5.0)
-        logger.info("Supabase Storage reachability OK")
+        names = await asyncio.wait_for(get_bucket_names(), timeout=5.0)
+        required = {
+            settings.supabase_storage_source_bucket,
+            settings.supabase_storage_passport_bucket,
+        }
+        missing = sorted(required - set(names))
+        if missing:
+            missing_list = "\n".join(f"  - {b}" for b in missing)
+            logger.warning(
+                "[STARTUP WARNING] Required Supabase Storage buckets are missing:\n%s\n"
+                "Create them in the Supabase dashboard before fetching source documents.\n"
+                "Doc: https://supabase.com/docs/guides/storage/buckets/creating-buckets",
+                missing_list,
+            )
+        else:
+            logger.info("Supabase Storage OK — both required buckets verified")
     except Exception as exc:
         logger.warning("Supabase Storage unreachable at startup (non-fatal): %s", exc)
 

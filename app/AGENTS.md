@@ -88,6 +88,19 @@ Read these before any non-trivial change. Listed by file at repo root:
   it — don't silently extend the schema.
 - Sessions may always update /PROGRESS.md.
 
+## Verification gates per session
+
+Run all of the following before declaring a session complete:
+
+1. `python -m pytest app/services/<module>/tests/ -q` — all tests pass.
+2. `python -m mypy app/services/<module>/ --ignore-missing-imports` — no errors.
+3. `alembic check` — "No new upgrade operations detected" (if models were touched).
+4. `alembic upgrade head` against the real Supabase instance — migration applies cleanly.
+5. `GET /v1/health` returns `database="ok"` — DB reachable.
+6. `GET /v1/health` returns `storage="ok"` (not `"missing_buckets"`). If it reports
+   `missing_buckets`, create the listed buckets in the Supabase Storage UI
+   before declaring the session done.
+
 ## Two scripts at repo root, one warning
 
 buildloop_passport_from_address.py and the colab v3 variant contain

@@ -51,6 +51,19 @@ def _sync_list_buckets() -> list[dict[str, object]]:
     return client.storage.list_buckets()  # type: ignore[return-value]
 
 
+def _sync_get_bucket_names() -> list[str]:
+    client = _get_client()
+    buckets = client.storage.list_buckets()
+    names: list[str] = []
+    for b in buckets:
+        # supabase-py v2 returns Bucket objects; v1 returned dicts
+        if hasattr(b, "name"):
+            names.append(str(b.name))
+        elif isinstance(b, dict):
+            names.append(str(b.get("name", "")))
+    return [n for n in names if n]
+
+
 async def upload_source_document(
     building_id: UUID,
     source_document_id: UUID,
@@ -126,3 +139,13 @@ async def get_published_passport_url(storage_key: str, expires_in: int = 3600) -
 async def list_buckets() -> list[dict[str, object]]:
     """List all storage buckets — used for reachability checks."""
     return await asyncio.to_thread(_sync_list_buckets)
+
+
+async def get_bucket_names() -> list[str]:
+    """Return the names of all existing Storage buckets.
+
+    Used by the health endpoint and startup verification to check that
+    required buckets (source-documents, published-passports) exist before
+    declaring the service fully operational.
+    """
+    return await asyncio.to_thread(_sync_get_bucket_names)
