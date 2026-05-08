@@ -72,10 +72,10 @@ Current session: 2.3 (Ingestion) — next up
 - ✅ 2.3 — Ingestion (Agent 3): EHR PDF fetch into
   `app/services/source_ingestion/` with Supabase Storage and
   checksum-based deduplication.
-- 📋 2.4 — Parser (Agent 4): PDF extraction into
+- ✅ 2.4 — Parser (Agent 4): PDF extraction into
   `app/services/source_parsing/` producing canonical observations
   with provenance. Highest-risk session.
-- 📋 2.5 — Relevance + projection (Agent 5):
+- ✅ 2.5 — Relevance + projection (Agent 5):
   `app/services/relevance_engine/` and `app/services/passport_engine/`
   producing draft JSON matching doc 03.
 - 📋 2.6 — API contracts (Agent 7): `app/api/routes/` filled per doc 11.
@@ -167,3 +167,5 @@ sections above.
 - 2026-05-07 — Resolver hotfix: candidate walker rewritten to handle real In-ADS response shape (addresses[].ehr[] with address fields on outer node). Synthetic fixtures replaced with real captured API response for Lai 1, 10133 Tallinn. End-to-end smoke test against live In-ADS now produces expected resolved status with corner aliases.
 - 2026-05-08 — Resolver hotfix: added in_ads_primary scoring signal (+0.10 when In-ADS marks entry primary='true'). CandidateGroup.in_ads_primary field added; captured in _structured_walk, propagated in group_candidates, scored in score_candidate. 3 new tests. resolver_version bumped to v1.2.0. 64 resolver tests pass.
 - 2026-05-08 — Track 2 hotfix: /v1/health now strictly verifies both Supabase Storage buckets exist; reports missing_buckets status when not. Startup warning added. storage='unavailable' now triggers 503. 5 health tests pass.
+- 2026-05-08 — Session 2.4 complete: parser carved into modules with six namespace extractors. Observations persisted with provenance. Integration test against real Lai 1 EHR PDF passes (golden file freezes 31 expected observations). parser_version='v1.0.0'. 66 tests pass, mypy clean, alembic check clean.
+- 2026-05-08 — Session 2.5 complete: relevance engine classifies observations per doc 05's static policy; passport engine projects passport_core + passport_supporting into FieldValue<T>-shaped payload_json. Quality scores and section breakdown computed. Integration test against Lai 1 observations produces schema_completeness_score≈81.6% (31/38 fields), confidence_score≈95.0% (all-high observations). 233 tests pass, mypy clean, alembic check clean. Track 2 half-complete: 2.1-2.5 done, 2.6-2.8 remaining.

@@ -264,6 +264,34 @@ in a later session.
 
 ---
 
+## Relevance Engine + Passport Engine (Session 2.5)
+
+**Static relevance map.** Field-to-bucket classification is a hard-coded Python
+dict in `policy.py`, sourced from doc 05's "Practical field policy" section. Not
+a learned model. Adding a new field requires a code change.
+
+**Default to low_signal for unmapped keys.** Any observation whose
+`<namespace>.<key>` isn't in the policy map is classified as `low_signal`.
+Surfaces unexpected fields without breaking projection.
+
+**Single bucket per observation.** `building_parts` is conceptually both
+`passport_core` and `listing_candidate`, but the `relevance_class` column stores
+only the primary bucket (`passport_core`). Listing candidate derivation in
+Track 2.8 reads observations directly by `namespace='building_parts'`, not by a
+secondary classification.
+
+**Confidence weight mapping.** `observation.confidence_label`
+('high'|'medium'|'low') maps to numeric weights (0.95/0.70/0.40) for
+`confidence_score` computation. Tunable via Settings. Differs from the script
+which used confidence strings like `'confirmed_from_pdf'`; the labels are
+abstracted at the parser layer in the new architecture.
+
+**One draft per project.** `passport_drafts` has a single 'current' row per
+project. Re-projection updates in place. History will live in
+`passport_versions` (Track 2.7).
+
+---
+
 ## Algorithmic deviations from reference scripts
 
 These are intentional changes from the validated extraction scripts at
@@ -336,3 +364,36 @@ The implementation follows the script as the source of truth.
 the `INGEST_EHR_TIMEOUT_SECONDS` setting defaults to 60 per the session
 spec. Flagged with `TODO(2.3 review)` in `ehr_fetcher.py`. Verify with
 EHR operator before production; bump the setting if long PDFs require 90s.
+
+I also confirmed that the pdf matches the pdf I imported locally. response from claude code:
+
+Done. Here's what was built across the four parts:
+
+Part 1 — Strict bucket check ([health.py](vscode-webview://1gkb3hsnpuu8errd3knoo9qsid8gv81qkumi1bcatefo4kho8uil/app/api/routes/health.py), [storage.py](vscode-webview://1gkb3hsnpuu8errd3knoo9qsid8gv81qkumi1bcatefo4kho8uil/app/core/storage.py)):
+
+- `get_bucket_names()` added to storage — lists bucket names as strings from the Supabase client's `list_buckets()` response, handling both v1 (dict) and v2 (Bucket object) shapes.
+
+- `_check_storage()` rewritten: resolves both required bucket names from settings, diffs against what Supabase returns, and returns a typed 3-way result: `("ok", [])` / `("missing_buckets", [...])` / `("unavailable", [])`.
+
+- HTTP 503 now fires on `storage="unavailable"` as well as `db="unavailable"`.
+
+- `missing_buckets` array appears in the response body only when there are missing buckets.
+
+Part 2 — Startup verification ([main.py](vscode-webview://1gkb3hsnpuu8errd3knoo9qsid8gv81qkumi1bcatefo4kho8uil/app/main.py)):
+
+- Lifespan now calls `get_bucket_names()` and diffs against required bucket names. Logs a formatted `[STARTUP WARNING]` with the exact missing bucket names and a link to the Supabase docs if any are absent. Server still starts — warning is loud but non-fatal.
+
+Part 3 — Tests ([tests/test_health.py](vscode-webview://1gkb3hsnpuu8errd3knoo9qsid8gv81qkumi1bcatefo4kho8uil/app/tests/test_health.py)):
+
+- Three new tests mock `_check_storage` directly so they run without Supabase or a real DB. The existing shape test updated to allow `"missing_buckets"` as a valid storage value. [app/conftest.py](vscode-webview://1gkb3hsnpuu8errd3knoo9qsid8gv81qkumi1bcatefo4kho8uil/app/conftest.py) created to provide a `DATABASE_URL_TEST` fallback so the guard in `app/tests/conftest.py` doesn't block these mocked tests.
+
+Part 4 — Docs ([app/AGENTS.md](vscode-webview://1gkb3hsnpuu8errd3knoo9qsid8gv81qkumi1bcatefo4kho8uil/app/AGENTS.md)): New "Verification gates per session" section with gate 6 explicitly requiring `storage="ok"` from `/v1/health` before declaring a session complete.
+
+**Geometry extraction gap.** The location.coordinates extractor (lifted
+verbatim from parse_geometry in the script) produces no observation
+when the PDF's geometry block is absent or formatted differently than
+the script anticipates. Confirmed for the Lai 1 EHR PDF — the geometry
+section exists in the source registry but isn't rendered into extractable
+text in this PDF version. Track 2.5's projection layer must treat
+location as a partial section gracefully (don't penalize completeness
+score for buildings whose source PDFs lack geometry text).

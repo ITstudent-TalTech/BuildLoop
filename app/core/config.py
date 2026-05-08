@@ -66,6 +66,22 @@ class Settings(BaseSettings):
     # session spec. Verify with EHR operator before production; bump if needed.
     ingest_ehr_timeout_seconds: int = 60
 
+    # --- Source parsing (PDF text extraction) ---
+    # Semver stamped on every extraction_runs row for regression tracking.
+    parser_version: str = "v1.0.0"
+    # Primary PDF extraction library. Do not change without updating DECISIONS.md.
+    parser_pdf_extraction_method_primary: str = "pypdf"
+    # Fallback PDF extraction library when primary fails.
+    parser_pdf_extraction_method_fallback: str = "pdfplumber"
+
+    # --- Passport confidence weights ---
+    # Map observation.confidence_label → numeric weight for confidence_score rollup.
+    # Tunable without code changes. See DECISIONS.md §"Confidence weight mapping".
+    passport_confidence_weight_high: float = 0.95
+    passport_confidence_weight_medium: float = 0.70
+    passport_confidence_weight_low: float = 0.40
+    passport_confidence_weight_default: float = 0.50
+
 
 @lru_cache
 def get_settings() -> Settings:
