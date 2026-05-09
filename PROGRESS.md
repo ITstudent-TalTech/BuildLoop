@@ -171,6 +171,7 @@ sections above.
 - 2026-05-08 — Session 2.5 complete: relevance engine classifies observations per doc 05's static policy; passport engine projects passport_core + passport_supporting into FieldValue<T>-shaped payload_json. Quality scores and section breakdown computed. Integration test against Lai 1 observations produces schema_completeness_score≈81.6% (31/38 fields), confidence_score≈95.0% (all-high observations). 233 tests pass, mypy clean, alembic check clean. Track 2 half-complete: 2.1-2.5 done, 2.6-2.8 remaining.
 - 2026-05-09 — Session A complete: /v1/projects/{id}/passport-pipeline consolidates fetch + parse + project. Frontend can now request a passport draft with one POST after resolution. Constituent endpoints unchanged. 238 tests pass, mypy clean, alembic check clean.
 - 2026-05-09 — Session B complete: frontend mocks/real mode toggle via NEXT_PUBLIC_API_MODE. Real mode wires intake, resolution, candidate-select, and pipeline endpoints. Edit/publish endpoints surface 501 until Session C. Mock mode preserved end-to-end for offline demos.
+- 2026-05-09 — Session B follow-up: passport page auto-triggers pipeline when no draft exists. New /passport-pipeline-auto endpoint reads ehr_code from project's building. Loading state during generation. Frontend bookmarkable and refresh-safe in real mode.
 
 ## Demo MVP path (priority reordering, 2026-05-08)
 

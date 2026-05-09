@@ -4,6 +4,10 @@ import StepIndicator from "@/components/shared/StepIndicator";
 import TopBar from "@/components/shared/TopBar";
 import { getPassportDraft } from "@/lib/api";
 
+// This page calls getPassportDraft at render time; skip static prerendering
+// so builds succeed regardless of NEXT_PUBLIC_API_MODE.
+export const dynamic = "force-dynamic";
+
 const states = [1, 2, 3, 4] as const;
 
 const highEvidence = {

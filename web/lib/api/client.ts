@@ -65,18 +65,6 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-// ── Session-scoped EHR code (client-side only) ────────────────────────────────
-// Set when resolution succeeds; consumed by generatePassportDraft to satisfy
-// the pipeline endpoint's required ehr_code body field.
-
-let _resolvedEhrCode: string | null = null;
-
-function captureEhrCode(resolution: ResolutionResponse): void {
-  if (resolution.status === "resolved") {
-    _resolvedEhrCode = resolution.ehr_code;
-  }
-}
-
 // ── Pipeline response shape (internal mapping — not surfaced in types.ts) ─────
 
 interface PipelineSuccessResponse {
@@ -125,18 +113,13 @@ export function createIntake(input: IntakeRequest): Promise<IntakeResponse> {
 /**
  * POST /v1/resolutions
  */
-export async function resolveAddress(intakeId: string): Promise<ResolutionResponse> {
+export function resolveAddress(intakeId: string): Promise<ResolutionResponse> {
   if (getApiMode() === "real") {
-    const resolution = await fetchJson<ResolutionResponse>(
-      `${getApiUrl()}/v1/resolutions`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ intake_request_id: intakeId }),
-      },
-    );
-    captureEhrCode(resolution);
-    return resolution;
+    return fetchJson<ResolutionResponse>(`${getApiUrl()}/v1/resolutions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ intake_request_id: intakeId }),
+    });
   }
   return withMockNetwork(() => mockResolveAddress(intakeId));
 }
@@ -144,12 +127,12 @@ export async function resolveAddress(intakeId: string): Promise<ResolutionRespon
 /**
  * POST /v1/resolutions/{resolution_run_id}/select
  */
-export async function selectCandidate(
+export function selectCandidate(
   resolutionRunId: string,
   ehrCode: string,
 ): Promise<ResolutionResponse> {
   if (getApiMode() === "real") {
-    const resolution = await fetchJson<ResolutionResponse>(
+    return fetchJson<ResolutionResponse>(
       `${getApiUrl()}/v1/resolutions/${resolutionRunId}/select`,
       {
         method: "POST",
@@ -157,8 +140,6 @@ export async function selectCandidate(
         body: JSON.stringify({ ehr_code: ehrCode }),
       },
     );
-    captureEhrCode(resolution);
-    return resolution;
   }
   return withMockNetwork(() => mockSelectCandidate(resolutionRunId, ehrCode));
 }
@@ -197,31 +178,17 @@ export function parseSourceDocument(sourceDocumentId: string): Promise<ParseResp
 }
 
 /**
- * POST /v1/projects/{project_id}/passport-pipeline
- * Consolidated fetch → parse → project pipeline.
- * In real mode, requires address resolution to have run first in this
- * browser session so that _resolvedEhrCode is populated.
+ * POST /v1/projects/{project_id}/passport-pipeline-auto
+ * Consolidated fetch → parse → project pipeline. Backend reads the EHR code
+ * from the project's resolved building — no ehr_code needed in the request.
  */
 export function generatePassportDraft(
   projectId: string,
 ): Promise<PassportDraftResponse> {
   if (getApiMode() === "real") {
-    if (!_resolvedEhrCode) {
-      return Promise.reject(
-        new ApiError(
-          400,
-          "ehr_code_required",
-          "EHR code is missing. Please complete address resolution before generating a draft.",
-        ),
-      );
-    }
     return fetchJson<PipelineSuccessResponse>(
-      `${getApiUrl()}/v1/projects/${projectId}/passport-pipeline`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ehr_code: _resolvedEhrCode }),
-      },
+      `${getApiUrl()}/v1/projects/${projectId}/passport-pipeline-auto`,
+      { method: "POST" },
     ).then(
       (res): PassportDraftResponse => ({
         status: "ok",

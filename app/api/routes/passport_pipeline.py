@@ -1,8 +1,11 @@
 """POST /v1/projects/{project_id}/passport-pipeline
+POST /v1/projects/{project_id}/passport-pipeline-auto
 
-Consolidated pipeline: source-fetch → source-parse → passport-project in sequence.
+passport-pipeline: consolidated fetch → parse → project using an explicit ehr_code.
+passport-pipeline-auto: same pipeline, no request body — reads ehr_code from the
+project's resolved building. Used by the frontend for auto-generation on page load.
+
 Each stage short-circuits on failure, preserving whatever was written for audit.
-Intended for the frontend's resolved-state transition (Session B).
 
 DO NOT remove the four constituent endpoints — they remain for retry/debug/admin.
 """
@@ -17,8 +20,10 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
+from app.models.buildings import Building
 from app.models.extraction_runs import ExtractionRun
 from app.models.observations import Observation
+from app.models.projects import Project
 from app.schemas.passport_pipeline import (
     PipelineFailureResponse,
     PipelineRequest,
@@ -37,11 +42,62 @@ async def passport_pipeline(
     body: PipelineRequest,
     db: AsyncSession = Depends(get_session),
 ) -> JSONResponse:
+    """Fetch → parse → project in sequence using an explicit ehr_code."""
+    return await _run_pipeline(project_id, body.ehr_code, db)
+
+
+@router.post("/{project_id}/passport-pipeline-auto")
+async def passport_pipeline_auto(
+    project_id: UUID,
+    db: AsyncSession = Depends(get_session),
+) -> JSONResponse:
+    """Same pipeline but reads ehr_code from the project's resolved building.
+
+    Returns 400 if the project is not yet linked to a building, or if the
+    building carries no primary EHR code.
+    """
+    project = await db.get(Project, project_id)
+    if project is None:
+        return JSONResponse(
+            status_code=404,
+            content={"status": "project_not_found", "error": "Project not found"},
+        )
+
+    if project.building_id is None:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": "project_not_resolved",
+                "error": "Project has not been resolved to a building yet",
+            },
+        )
+
+    building = await db.get(Building, project.building_id)
+    if building is None or not building.primary_ehr_code:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": "building_no_ehr",
+                "error": "Building has no primary EHR code",
+            },
+        )
+
+    return await _run_pipeline(project_id, building.primary_ehr_code, db)
+
+
+# ── Shared pipeline composition ────────────────────────────────────────────────
+
+
+async def _run_pipeline(
+    project_id: UUID,
+    ehr_code: str,
+    db: AsyncSession,
+) -> JSONResponse:
     """Fetch → parse → project in sequence; short-circuits on first failure."""
 
     # ── Stage 1: fetch ────────────────────────────────────────────────────────
     fetch_result = await SourceIngestionService().fetch_for_project(
-        project_id, body.ehr_code, db
+        project_id, ehr_code, db
     )
     if fetch_result.status == "fetch_failed":
         return _fail(

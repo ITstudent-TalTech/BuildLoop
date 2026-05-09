@@ -425,6 +425,18 @@ throw a structured `ApiError(501, 'not_yet_implemented', ...)`. Frontend
 screens already handle `ApiError` inline — no component changes needed.
 These endpoints start working when Session C lands.
 
+**Auto-pipeline on missing draft.** `/passport/[id]` in real mode detects
+404 from `GET passport-draft` and auto-triggers the `passport-pipeline-auto`
+endpoint before rendering. Loading state visible during generation. Makes
+the URL bookmarkable and refresh-safe. Removes the need for the module-level
+`_resolvedEhrCode` bridge in the frontend client.
+
+**passport-pipeline-auto endpoint.** Variant of `/passport-pipeline` that
+reads the EHR code from the project's resolved building (`Project.building_id
+→ Building.primary_ehr_code`) rather than requiring it in the request body.
+Used by the frontend for auto-generation. The original `passport-pipeline`
+endpoint stays available for explicit ehr_code submission (e.g., admin tools).
+
 ---
 
 ## API design notes (Session A)
