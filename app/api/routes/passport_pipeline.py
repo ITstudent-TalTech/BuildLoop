@@ -24,6 +24,7 @@ from app.models.buildings import Building
 from app.models.extraction_runs import ExtractionRun
 from app.models.observations import Observation
 from app.models.projects import Project
+from app.schemas.passport import PassportDraftGetResponse
 from app.schemas.passport_pipeline import (
     PipelineFailureResponse,
     PipelineRequest,
@@ -139,7 +140,7 @@ async def _run_pipeline(
                     extraction_run_id=None,
                 ),
             )
-        extraction_run_id = parse_result.extraction_run_id  # type: ignore[assignment]
+        extraction_run_id = parse_result.extraction_run_id
         observation_count = parse_result.observation_count
 
     # Unreachable in practice (successful parse always has an extraction_run_id),
@@ -171,6 +172,22 @@ async def _run_pipeline(
             ),
         )
 
+    draft_response = PassportDraftGetResponse(
+        passport_draft_id=projection.passport_draft_id,
+        building_id=projection.building_id,
+        project_id=projection.project_id,
+        schema_version=projection.schema_version,
+        status=projection.status,
+        generated_at=projection.generated_at,
+        identity=projection.payload_json.get("identity", {}),
+        building_profile=projection.payload_json.get("building_profile", {}),
+        structural_systems=projection.payload_json.get("structural_systems", {}),
+        technical_systems=projection.payload_json.get("technical_systems", {}),
+        location=projection.payload_json.get("location", {}),
+        building_parts=projection.payload_json.get("building_parts", {}),
+        quality=projection.payload_json.get("quality", {}),
+    )
+
     return JSONResponse(
         status_code=200,
         content=PipelineSuccessResponse(
@@ -182,6 +199,7 @@ async def _run_pipeline(
             confidence_score=projection.confidence_score,
             fetch_status=fetch_status,  # type: ignore[arg-type]
             observation_count=observation_count,
+            draft=draft_response,
         ).model_dump(mode="json"),
     )
 

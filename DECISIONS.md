@@ -465,3 +465,11 @@ with a structured `PipelineFailureResponse` (status, stage, error) and preserves
 whatever partial state was written (so errors are auditable). HTTP 502 for
 upstream failures (EHR fetch, Supabase Storage), HTTP 500 for internal failures
 (projection engine exception).
+
+**Pipeline returns full draft.** Both pipeline endpoints embed the full
+`PassportDraftGetResponse` payload in the success response (`draft` field).
+The frontend reads `genResult.draft` directly and only falls back to `GET
+/passport-draft` if `draft` is null. Removes a round trip and avoids
+read-after-write consistency issues with Supabase's pooled connections
+(where a `GET` issued immediately after a `POST`/commit may hit a read
+replica that hasn't caught up yet).

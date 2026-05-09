@@ -119,8 +119,8 @@ export default async function PassportDraftPage({
       // The pipeline is idempotent (fetch dedup'd, parse skipped if done,
       // projection upserts), so calling it here on refresh is safe.
       try {
-        await generatePassportDraft(id);
-        draft = await getPassportDraft(id);
+        const genResult = await generatePassportDraft(id);
+        draft = genResult.draft ?? await getPassportDraft(id);
       } catch (genErr) {
         return <PassportGenerationError projectId={id} error={genErr} />;
       }

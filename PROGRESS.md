@@ -172,6 +172,7 @@ sections above.
 - 2026-05-09 — Session A complete: /v1/projects/{id}/passport-pipeline consolidates fetch + parse + project. Frontend can now request a passport draft with one POST after resolution. Constituent endpoints unchanged. 238 tests pass, mypy clean, alembic check clean.
 - 2026-05-09 — Session B complete: frontend mocks/real mode toggle via NEXT_PUBLIC_API_MODE. Real mode wires intake, resolution, candidate-select, and pipeline endpoints. Edit/publish endpoints surface 501 until Session C. Mock mode preserved end-to-end for offline demos.
 - 2026-05-09 — Session B follow-up: passport page auto-triggers pipeline when no draft exists. New /passport-pipeline-auto endpoint reads ehr_code from project's building. Loading state during generation. Frontend bookmarkable and refresh-safe in real mode.
+- 2026-05-09 — Hotfix on Session B follow-up: pipeline endpoints now return full passport_draft payload in `draft` field, eliminating second GET and the replica-lag 404s observed in real-mode auto-generation. 242 tests pass, mypy clean, build clean.
 
 ## Demo MVP path (priority reordering, 2026-05-08)
 

@@ -84,6 +84,17 @@ async def test_pipeline_happy_path() -> None:
         schema_version="buildloop.passport.mvp.v1",
         schema_completeness_score=81.6,
         confidence_score=95.0,
+        building_id=uuid4(),
+        project_id=project_id,
+        status="draft_system_generated",
+        generated_at="2026-05-09T10:00:00+00:00",
+        payload_json={
+            "identity": {"ehr_code": {"value": "101035685", "confidence": "high", "source": None, "last_updated": None}},
+            "building_profile": {}, "structural_systems": {}, "technical_systems": {},
+            "location": {}, "building_parts": {},
+            "quality": {"schema_completeness_score": 81.6, "confidence_score": 95.0,
+                        "confidence_label": "high", "section_breakdown": {}, "missing_fields": []},
+        },
     )
 
     db = _mock_db()
@@ -119,6 +130,8 @@ async def test_pipeline_happy_path() -> None:
     assert body["confidence_score"] == 95.0
     assert body["fetch_status"] == "ok"
     assert body["observation_count"] == 31
+    assert body["draft"] is not None
+    assert body["draft"]["identity"]["ehr_code"]["value"] == "101035685"
 
 
 # ---------------------------------------------------------------------------
@@ -277,6 +290,16 @@ async def test_pipeline_skips_reparse_for_deduped_fetch() -> None:
         schema_version="buildloop.passport.mvp.v1",
         schema_completeness_score=81.6,
         confidence_score=95.0,
+        building_id=uuid4(),
+        project_id=project_id,
+        status="draft_system_generated",
+        generated_at="2026-05-09T10:00:00+00:00",
+        payload_json={
+            "identity": {}, "building_profile": {}, "structural_systems": {},
+            "technical_systems": {}, "location": {}, "building_parts": {},
+            "quality": {"schema_completeness_score": 81.6, "confidence_score": 95.0,
+                        "confidence_label": "high", "section_breakdown": {}, "missing_fields": []},
+        },
     )
 
     db = _mock_db()

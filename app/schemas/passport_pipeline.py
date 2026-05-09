@@ -12,6 +12,7 @@ TypeScript equivalent for Session B integration:
     confidence_score: number;
     fetch_status: "ok" | "deduped";
     observation_count: number;
+    draft: PassportDraft | null;       // full draft payload — avoids second GET
   }
 
   interface PipelineFailureResponse {
@@ -30,6 +31,8 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from app.schemas.passport import PassportDraftGetResponse
+
 
 class PipelineRequest(BaseModel):
     ehr_code: str
@@ -45,6 +48,7 @@ class PipelineSuccessResponse(BaseModel):
     confidence_score: float
     fetch_status: Literal["ok", "deduped"]
     observation_count: int
+    draft: PassportDraftGetResponse | None = None
 
 
 class PipelineFailureResponse(BaseModel):

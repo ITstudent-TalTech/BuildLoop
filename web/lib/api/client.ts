@@ -77,7 +77,11 @@ interface PipelineSuccessResponse {
   confidence_score: number;
   fetch_status: "ok" | "deduped";
   observation_count: number;
+  draft: PassportDraft | null;
 }
+
+// Extends PassportDraftResponse with the full draft payload (when available from pipeline)
+type GenerateDraftResult = PassportDraftResponse & { draft?: PassportDraft };
 
 // ── Mock network wrapper (unchanged from original) ────────────────────────────
 
@@ -184,18 +188,19 @@ export function parseSourceDocument(sourceDocumentId: string): Promise<ParseResp
  */
 export function generatePassportDraft(
   projectId: string,
-): Promise<PassportDraftResponse> {
+): Promise<GenerateDraftResult> {
   if (getApiMode() === "real") {
     return fetchJson<PipelineSuccessResponse>(
       `${getApiUrl()}/v1/projects/${projectId}/passport-pipeline-auto`,
       { method: "POST" },
     ).then(
-      (res): PassportDraftResponse => ({
+      (res): GenerateDraftResult => ({
         status: "ok",
         passport_draft_id: res.passport_draft_id,
         schema_version: res.schema_version as PassportDraft["schema_version"],
         schema_completeness_score: res.schema_completeness_score,
         confidence_score: res.confidence_score,
+        draft: res.draft ?? undefined,
       }),
     );
   }

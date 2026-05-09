@@ -173,6 +173,11 @@ class PassportEngine:
             schema_version=draft.schema_version,
             schema_completeness_score=float(draft.schema_completeness_score or 0.0),
             confidence_score=float(draft.confidence_score or 0.0),
+            building_id=project.building_id,
+            project_id=project_id,
+            status=draft.status,
+            generated_at=now.isoformat(),
+            payload_json=payload,
         )
 
     async def get_current_draft(
