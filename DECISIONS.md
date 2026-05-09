@@ -400,6 +400,33 @@ score for buildings whose source PDFs lack geometry text).
 
 ---
 
+## Frontend integration (Session B)
+
+**API mode toggle.** `/web/lib/api/client.ts` switches between mock and real
+fetch based on `NEXT_PUBLIC_API_MODE`. Both modes coexist permanently. Mock
+mode stays useful for offline demos, design work, and component playground.
+Real mode is for end-to-end contractor demos.
+
+**Pipeline endpoint absorption.** The frontend's `generatePassportDraft()`
+now hits `POST /v1/projects/{id}/passport-pipeline` directly, passing
+through fetch + parse + project in one POST. The intermediate
+`fetchSourceDocuments` and `parseSourceDocument` client functions remain
+available for debugging but are not called by the screens.
+
+**Session-scoped EHR code.** `resolveAddress` and `selectCandidate` store
+the resolved `ehr_code` in a module-level variable (`_resolvedEhrCode`) on
+the client. `generatePassportDraft` reads this when calling the pipeline.
+This persists within a browser tab session; a page refresh or direct
+navigation to a passport URL clears it. Full re-generation requires
+completing the intake → resolution flow first.
+
+**Edit/publish stubs.** `editDraftField` and `publishDraft` in real mode
+throw a structured `ApiError(501, 'not_yet_implemented', ...)`. Frontend
+screens already handle `ApiError` inline — no component changes needed.
+These endpoints start working when Session C lands.
+
+---
+
 ## API design notes (Session A)
 
 **Consolidated pipeline endpoint.** `POST /v1/projects/{id}/passport-pipeline`

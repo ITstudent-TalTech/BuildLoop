@@ -170,6 +170,7 @@ sections above.
 - 2026-05-08 — Session 2.4 complete: parser carved into modules with six namespace extractors. Observations persisted with provenance. Integration test against real Lai 1 EHR PDF passes (golden file freezes 31 expected observations). parser_version='v1.0.0'. 66 tests pass, mypy clean, alembic check clean.
 - 2026-05-08 — Session 2.5 complete: relevance engine classifies observations per doc 05's static policy; passport engine projects passport_core + passport_supporting into FieldValue<T>-shaped payload_json. Quality scores and section breakdown computed. Integration test against Lai 1 observations produces schema_completeness_score≈81.6% (31/38 fields), confidence_score≈95.0% (all-high observations). 233 tests pass, mypy clean, alembic check clean. Track 2 half-complete: 2.1-2.5 done, 2.6-2.8 remaining.
 - 2026-05-09 — Session A complete: /v1/projects/{id}/passport-pipeline consolidates fetch + parse + project. Frontend can now request a passport draft with one POST after resolution. Constituent endpoints unchanged. 238 tests pass, mypy clean, alembic check clean.
+- 2026-05-09 — Session B complete: frontend mocks/real mode toggle via NEXT_PUBLIC_API_MODE. Real mode wires intake, resolution, candidate-select, and pipeline endpoints. Edit/publish endpoints surface 501 until Session C. Mock mode preserved end-to-end for offline demos.
 
 ## Demo MVP path (priority reordering, 2026-05-08)
 
@@ -178,7 +179,7 @@ Reordered toward shipping a contractor-demoable MVP with remaining
 weekly Claude Code budget. New priority:
 
 - ✅ A — Backend pipeline endpoint (consolidates fetch+parse+generate)
-- 📋 B — Frontend integration (replace mocks with real fetches)
+- ✅ B — Frontend integration (replace mocks with real fetches)
 - 📋 C — Minimal review/publish backend (no PDF export)
 - 📋 Manual: Railway deploy, Vercel deploy, CORS, smoke test
 
