@@ -46,7 +46,7 @@ python_version = "3.11"
 strict = true
 ignore_missing_imports = true
 # mypy_path points to repo root so `import app` resolves correctly
-mypy_path = ".."
+mypy_path = "."
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
