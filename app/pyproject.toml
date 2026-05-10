@@ -30,7 +30,7 @@ dev = [
 # Tell setuptools to look one level up (the repo root) for Python packages.
 # This makes `from app.core.config import ...` work when installed from app/.
 [tool.setuptools.packages.find]
-where = [".."]
+where = ["."]
 include = ["app*"]
 
 [tool.ruff]
