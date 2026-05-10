@@ -1,0 +1,353 @@
+[
+  {
+    "namespace": "identity",
+    "key": "ehr_code",
+    "section": "identity",
+    "value": "101035685",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 1,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "identity",
+    "key": "normalized_address",
+    "section": "identity",
+    "value": "Harju maakond, Tallinn, Kesklinna linnaosa, Lai tn 1 // Nunne tn 4",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 1,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "identity",
+    "key": "country",
+    "section": "identity",
+    "value": "EE",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": null,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "building_profile",
+    "key": "building_type",
+    "section": "building_profile",
+    "value": "Hoone",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 1,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "building_profile",
+    "key": "building_status",
+    "section": "building_profile",
+    "value": "Olemas",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 1,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "building_profile",
+    "key": "building_name",
+    "section": "building_profile",
+    "value": "Teatrihoone",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 1,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "building_profile",
+    "key": "footprint_area_m2",
+    "section": "building_profile",
+    "value": 2051.9,
+    "unit": "m2",
+    "confidence_label": "high",
+    "page_number": 1,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "building_profile",
+    "key": "heated_area_m2",
+    "section": "building_profile",
+    "value": 4971.8,
+    "unit": "m2",
+    "confidence_label": "high",
+    "page_number": 1,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "building_profile",
+    "key": "net_area_m2",
+    "section": "building_profile",
+    "value": 4986.6,
+    "unit": "m2",
+    "confidence_label": "high",
+    "page_number": 1,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "building_profile",
+    "key": "technical_area_m2",
+    "section": "building_profile",
+    "value": 233.4,
+    "unit": "m2",
+    "confidence_label": "high",
+    "page_number": 1,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "building_profile",
+    "key": "floors.above_ground",
+    "section": "building_profile",
+    "value": 4,
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 1,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "building_profile",
+    "key": "height_m",
+    "section": "building_profile",
+    "value": 19.4,
+    "unit": "m",
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "building_profile",
+    "key": "length_m",
+    "section": "building_profile",
+    "value": 70.1,
+    "unit": "m",
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "building_profile",
+    "key": "width_m",
+    "section": "building_profile",
+    "value": 48.5,
+    "unit": "m",
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "building_profile",
+    "key": "depth_m",
+    "section": "building_profile",
+    "value": 2.8,
+    "unit": "m",
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "building_profile",
+    "key": "volume_m3",
+    "section": "building_profile",
+    "value": 28885.6,
+    "unit": "m3",
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "building_profile",
+    "key": "use_categories",
+    "section": "building_profile",
+    "value": [
+      {
+        "name": "kontserdi- ja universaalsaalide hoone",
+        "classifier_code": "12611",
+        "area_m2": 3755.5,
+        "source": "pdf"
+      },
+      {
+        "name": "kunstigalerii",
+        "classifier_code": "12621",
+        "area_m2": 997.7,
+        "source": "pdf"
+      }
+    ],
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 1,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "structural_systems",
+    "key": "foundation_type",
+    "section": "structural_systems",
+    "value": "madalvundament; vaivundament",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "structural_systems",
+    "key": "load_bearing_material",
+    "section": "structural_systems",
+    "value": "looduslik kivi; monoliitne raudbetoon; puit; tellis; metall",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "structural_systems",
+    "key": "wall_type",
+    "section": "structural_systems",
+    "value": "looduslik kivi; tellis; betoon",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "structural_systems",
+    "key": "facade_finish_material",
+    "section": "structural_systems",
+    "value": "krohv; looduslik kivi",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "structural_systems",
+    "key": "floor_structure_material",
+    "section": "structural_systems",
+    "value": "monoliitne raudbetoon; puit",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "structural_systems",
+    "key": "roof_structure_material",
+    "section": "structural_systems",
+    "value": "puit; terasferm või -tala; monoliitne raudbetoon",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "structural_systems",
+    "key": "roof_covering_material",
+    "section": "structural_systems",
+    "value": "plekk",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "technical_systems",
+    "key": "electricity",
+    "section": "technical_systems",
+    "value": "võrk",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "technical_systems",
+    "key": "water",
+    "section": "technical_systems",
+    "value": "võrk",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "technical_systems",
+    "key": "sewer",
+    "section": "technical_systems",
+    "value": "võrk",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "technical_systems",
+    "key": "heat_source",
+    "section": "technical_systems",
+    "value": "kaugküte",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "technical_systems",
+    "key": "ventilation",
+    "section": "technical_systems",
+    "value": "loomulik ventilatsioon; muu: Sundväljatõmme ja soojustagastusega ventilatsioon on osaline; soojustagastusega ventilatsioon; mehaaniline väljatõmme; konditsioneerimisega ventilatsioon; mehaaniline sissepuhe ja väljatõmme",
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 2,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "technical_systems",
+    "key": "lift_count",
+    "section": "technical_systems",
+    "value": 1,
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 3,
+    "relevance_class": "unclassified"
+  },
+  {
+    "namespace": "building_parts",
+    "key": "building_parts",
+    "section": "building_parts",
+    "value": [
+      {
+        "part_identifier": "part_1",
+        "part_type": "Mitteeluruum",
+        "shape_no": 1,
+        "part_name": "Teatrihoone",
+        "part_use": "Teater, kino, kontserdi- ja universaalsaalide hoone",
+        "part_area_m2": 3755.5,
+        "source": "pdf"
+      },
+      {
+        "part_identifier": "part_2",
+        "part_type": "Mitteeluruum",
+        "shape_no": 1,
+        "part_name": "Tehnopind - ala",
+        "part_use": "Teater, kino, kontserdi- ja universaalsaalide hoone",
+        "part_area_m2": 233.4,
+        "source": "pdf"
+      },
+      {
+        "part_identifier": "part_3",
+        "part_type": "Mitteeluruum",
+        "shape_no": 1,
+        "part_name": null,
+        "part_use": "Muuseum, kunstigalerii",
+        "part_area_m2": 997.7,
+        "source": "pdf"
+      }
+    ],
+    "unit": null,
+    "confidence_label": "high",
+    "page_number": 4,
+    "relevance_class": "unclassified"
+  }
+]

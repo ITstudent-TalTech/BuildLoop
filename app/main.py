@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 VERSION = "0.1.0"
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
@@ -93,3 +92,11 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # add Vercel URL here when deployed
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)

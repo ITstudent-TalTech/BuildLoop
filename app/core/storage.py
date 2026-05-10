@@ -136,6 +136,25 @@ async def get_published_passport_url(storage_key: str, expires_in: int = 3600) -
     )
 
 
+def _sync_download(bucket: str, path: str) -> bytes:
+    client = _get_client()
+    return client.storage.from_(bucket).download(path)  # type: ignore[return-value]
+
+
+async def download_source_document(bucket: str, path: str) -> bytes:
+    """Download a source document from Supabase Storage and return raw bytes.
+
+    Args:
+        bucket: The Supabase Storage bucket name (e.g. "source-documents").
+        path:   The object path within the bucket.
+    Returns:
+        Raw bytes of the stored file.
+    Raises:
+        Whatever the Supabase client raises on storage error.
+    """
+    return await asyncio.to_thread(_sync_download, bucket, path)
+
+
 async def list_buckets() -> list[dict[str, object]]:
     """List all storage buckets — used for reachability checks."""
     return await asyncio.to_thread(_sync_list_buckets)

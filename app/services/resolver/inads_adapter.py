@@ -123,6 +123,7 @@ class InAdsAdapter:
     def _parse_response(
         resp: httpx.Response, *, ssl_fallback_used: bool
     ) -> InAdsResponse:
+        logger.warning("INADS DEBUG: status=%s body=%s", resp.status_code, resp.text[:2000])
         if resp.status_code != 200:
             return InAdsResponse(
                 ok=False,
