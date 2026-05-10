@@ -90,20 +90,32 @@ export default function QualitySection({ quality }: QualitySectionProps) {
         </tbody>
       </table>
 
-      {quality.missing_fields.length > 0 ? (
-        <div className="mt-6">
-          <h3 className="text-sm font-semibold text-ink">Missing fields</h3>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {quality.missing_fields.map((field) => (
-              <MissingFieldJumpButton
-                field={field}
-                key={field}
-                targetId={missingFieldTargets[field] ?? "field-building_profile-building_name"}
-              />
-            ))}
+      {(() => {
+        // Backend currently emits identity.address_aliases as missing when aliases
+        // equal the normalized address (non-corner buildings). The frontend treats
+        // this as "not applicable" rather than "missing" — filter here until the
+        // projection layer is corrected (Track 2.6 cleanup).
+        const renderableMissing = quality.missing_fields.filter(
+          (field) => field !== "identity.address_aliases",
+        );
+
+        if (renderableMissing.length === 0) return null;
+
+        return (
+          <div className="mt-6">
+            <h3 className="text-sm font-semibold text-ink">Missing fields</h3>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {renderableMissing.map((field) => (
+                <MissingFieldJumpButton
+                  field={field}
+                  key={field}
+                  targetId={missingFieldTargets[field] ?? "field-building_profile-building_name"}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      ) : null}
+        );
+      })()}
     </SectionCard>
   );
 }

@@ -30,6 +30,51 @@ function cloneDraft(draft: PassportDraft): PassportDraft {
   return structuredClone(draft);
 }
 
+function formatAliases(
+  aliases: string[] | null | undefined,
+  normalizedAddress: string | null,
+): string | null {
+  if (!aliases || aliases.length === 0) return null;
+  if (aliases.length === 1 && aliases[0] === normalizedAddress) return null;
+  return aliases.join(" · ");
+}
+
+// Safely format coordinates for display. Real EHR PDFs sometimes contain a
+// polygon as an array of {x, y} vertices in EPSG-3301; older fixtures used
+// a plain string; missing coordinates are null.
+function formatCoordinates(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value === "string") return value;
+  if (Array.isArray(value) && value.length > 0) {
+    const first = value[0];
+    if (first && typeof first === "object" && "x" in first && "y" in first) {
+      return `${value.length}-vertex polygon`;
+    }
+  }
+  return null;
+}
+
+// Use categories from the backend are an array of {name, classifier_code,
+// area_m2, source} objects. Render as "code – name · code – name".
+function formatUseCategories(value: unknown): string | null {
+  if (!Array.isArray(value) || value.length === 0) return null;
+  return value
+    .map((cat) => {
+      if (typeof cat === "string") return cat;
+      if (cat && typeof cat === "object" && "name" in cat) {
+        const name = String((cat as { name?: unknown }).name ?? "");
+        const code =
+          "classifier_code" in cat
+            ? String((cat as { classifier_code?: unknown }).classifier_code ?? "")
+            : "";
+        return code ? `${code} – ${name}` : name;
+      }
+      return null;
+    })
+    .filter(Boolean)
+    .join(" · ");
+}
+
 function confidenceLabel(fields: FieldValue<unknown>[]): Confidence {
   const counts = { high: 0, medium: 0, low: 0 };
   fields.forEach((field) => {
@@ -86,6 +131,9 @@ function recomputeQuality(draft: PassportDraft): PassportQuality {
     ...location,
   ];
 
+  // TODO: backend uses weights 0.95/0.70/0.40 (configurable in Settings).
+  // Local recompute uses 100/70/40 here. Reconcile in a future sync pass
+  // so frontend and backend produce identical scores after edits.
   return {
     ...draft.quality,
     schema_completeness_score: Math.round((populated / total) * 100),
@@ -306,18 +354,39 @@ export default function EditablePassportLayout({
   return (
     <EditContext.Provider value={contextValue}>
       <div className="mt-8 space-y-6 pb-24">
-        <SectionCard
-          confidenceLabel="high"
-          fieldsPopulated={5}
-          fieldsTotal={5}
-          title="Identity"
-        >
-          <EditableFieldRow editable={false} fieldPath="identity.ehr_code" fieldValue={editableEvidenceField(draft.identity.ehr_code)} isMono label="EHR code" />
-          <EditableFieldRow editable={false} fieldPath="identity.normalized_address" fieldValue={editableEvidenceField(draft.identity.normalized_address)} label="Normalized address" />
-          <EditableFieldRow editable={false} fieldPath="identity.address_aliases" fieldValue={editableEvidenceField(draft.identity.address_aliases)} label="Address aliases" />
-          <EditableFieldRow editable={false} fieldPath="identity.country" fieldValue={editableEvidenceField(draft.identity.country)} label="Country" />
-          <EditableFieldRow editable={false} fieldPath="identity.input_address" fieldValue={editableEvidenceField(draft.identity.input_address)} label="Original input" />
-        </SectionCard>
+        {(() => {
+          const aliasDisplay = formatAliases(
+            draft.identity.address_aliases.value as string[] | null,
+            draft.identity.normalized_address.value,
+          );
+          const aliasesAreMeaningful = aliasDisplay !== null;
+          const total = aliasesAreMeaningful ? 5 : 4;
+          const populated = aliasesAreMeaningful ? 5 : 4;
+          return (
+            <SectionCard
+              confidenceLabel="high"
+              fieldsPopulated={populated}
+              fieldsTotal={total}
+              title="Identity"
+            >
+              <EditableFieldRow editable={false} fieldPath="identity.ehr_code" fieldValue={editableEvidenceField(draft.identity.ehr_code)} isMono label="EHR code" />
+              <EditableFieldRow editable={false} fieldPath="identity.normalized_address" fieldValue={editableEvidenceField(draft.identity.normalized_address)} label="Normalized address" />
+              {aliasesAreMeaningful ? (
+                <EditableFieldRow
+                  editable={false}
+                  fieldPath="identity.address_aliases"
+                  fieldValue={{
+                    ...draft.identity.address_aliases,
+                    value: aliasDisplay,
+                  } as EditableFieldValue}
+                  label="Address aliases"
+                />
+              ) : null}
+              <EditableFieldRow editable={false} fieldPath="identity.country" fieldValue={editableEvidenceField(draft.identity.country)} label="Country" />
+              <EditableFieldRow editable={false} fieldPath="identity.input_address" fieldValue={editableEvidenceField(draft.identity.input_address)} label="Original input" />
+            </SectionCard>
+          );
+        })()}
 
         <SectionCard
           confidenceLabel={qualityDraft.quality.section_breakdown.building_profile.confidence_label}
@@ -328,7 +397,15 @@ export default function EditablePassportLayout({
           <EditableFieldRow fieldPath="building_profile.building_type" fieldValue={editableEvidenceField(draft.building_profile.building_type)} label="Building type" />
           <EditableFieldRow fieldPath="building_profile.building_status" fieldValue={editableEvidenceField(draft.building_profile.building_status)} label="Building status" />
           <EditableFieldRow fieldPath="building_profile.building_name" fieldValue={editableEvidenceField(draft.building_profile.building_name)} label="Building name" />
-          <EditableFieldRow fieldPath="building_profile.use_categories" fieldValue={editableEvidenceField(draft.building_profile.use_categories)} label="Use categories" />
+          <EditableFieldRow
+            editable={false}
+            fieldPath="building_profile.use_categories"
+            fieldValue={{
+              ...draft.building_profile.use_categories,
+              value: formatUseCategories(draft.building_profile.use_categories.value),
+            } as EditableFieldValue}
+            label="Use categories"
+          />
           <EditableFieldRow fieldPath="building_profile.floors.above_ground" fieldValue={floorsField(draft.building_profile.floors, draft.building_profile.floors.value?.above_ground)} label="Floors above ground" />
           <EditableFieldRow fieldPath="building_profile.floors.below_ground" fieldValue={floorsField(draft.building_profile.floors, draft.building_profile.floors.value?.below_ground)} label="Floors below ground" />
           <EditableFieldRow fieldPath="building_profile.footprint_area_m2" fieldValue={editableEvidenceField(draft.building_profile.footprint_area_m2)} label="Footprint area" />
@@ -363,10 +440,19 @@ export default function EditablePassportLayout({
         </SectionCard>
 
         <SectionCard confidenceLabel={qualityDraft.quality.section_breakdown.location.confidence_label} fieldsPopulated={qualityDraft.quality.section_breakdown.location.fields_populated} fieldsTotal={3} title="Location">
-          <StaticLocationPreview coordinates={draft.location.coordinates.value} />
+          <StaticLocationPreview coordinates={formatCoordinates(draft.location.coordinates.value)} />
           <EditableFieldRow fieldPath="location.geometry_method" fieldValue={editableEvidenceField(draft.location.geometry_method)} label="Geometry method" />
           <EditableFieldRow fieldPath="location.shape_type" fieldValue={editableEvidenceField(draft.location.shape_type)} label="Shape type" />
-          <EditableFieldRow fieldPath="location.coordinates" fieldValue={editableEvidenceField(draft.location.coordinates)} isMono label="Coordinates" />
+          <EditableFieldRow
+            editable={false}
+            fieldPath="location.coordinates"
+            fieldValue={{
+              ...draft.location.coordinates,
+              value: formatCoordinates(draft.location.coordinates.value),
+            } as EditableFieldValue}
+            isMono
+            label="Coordinates"
+          />
         </SectionCard>
 
         <div>

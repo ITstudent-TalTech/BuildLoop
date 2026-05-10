@@ -25,6 +25,23 @@ function confidenceLabel(fields: FieldValue<unknown>[]): Confidence {
   return "high";
 }
 
+function formatUseCategories(value: unknown): string | null {
+  if (!Array.isArray(value) || value.length === 0) return null;
+  return value
+    .map((cat) => {
+      if (typeof cat === "string") return cat;
+      if (cat && typeof cat === "object" && "name" in cat) {
+        // Prefer "12611 – Teater, kino…" format; fall back to name only
+        const name = String(cat.name ?? "");
+        const code = "classifier_code" in cat ? String(cat.classifier_code ?? "") : "";
+        return code ? `${code} – ${name}` : name;
+      }
+      return null;
+    })
+    .filter(Boolean)
+    .join(" · ");
+}
+
 export default function BuildingProfileSection({
   profile,
 }: BuildingProfileSectionProps) {
@@ -48,7 +65,7 @@ export default function BuildingProfileSection({
         <FieldRow evidence={evidence(profile.building_name)} label="Building name" value={profile.building_name.value} />
       </div>
       <div id="field-building_profile-use_categories">
-        <FieldRow evidence={evidence(profile.use_categories)} label="Use categories" value={profile.use_categories.value?.join(" · ") ?? null} />
+        <FieldRow evidence={evidence(profile.use_categories)} label="Use categories" value={formatUseCategories(profile.use_categories.value)} />
       </div>
       <div id="field-building_profile-floors_above_ground">
         <FieldRow evidence={evidence(profile.floors)} label="Floors above ground" value={profile.floors.value?.above_ground} />

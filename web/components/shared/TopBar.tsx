@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 function LanguageSwitcher() {
   const languages = ["ET", "EN"] as const;
 
@@ -51,9 +53,9 @@ export default function TopBar() {
   return (
     <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-ink/10 bg-white px-4 sm:px-7">
       <div className="flex min-w-0 items-center gap-3.5">
-        <div className="text-[17px] font-bold leading-none text-ink">
+        <Link href="/" className="inline-block text-[17px] font-bold leading-none text-ink">
           BUILD<span className="text-forest">Loop</span>
-        </div>
+        </Link>
         <span className="rounded border border-ink/10 bg-surface px-2 py-1 font-mono text-[10.5px] font-medium uppercase tracking-[0.08em] text-ink-soft">
           V0.1 &middot; MVP
         </span>

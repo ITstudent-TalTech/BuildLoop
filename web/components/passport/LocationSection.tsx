@@ -18,10 +18,25 @@ function confidenceLabel(fields: FieldValue<unknown>[]): Confidence {
   return "high";
 }
 
+// Safely format coordinates for display. Real EHR PDFs sometimes contain a
+// polygon as an array of {x, y} vertices in EPSG-3301; older fixtures used
+// a plain string; missing coordinates are null.
+function formatCoordinates(value: unknown): string {
+  if (value == null) return "Coordinates unavailable";
+  if (typeof value === "string") return value;
+  if (Array.isArray(value) && value.length > 0) {
+    const first = value[0];
+    if (first && typeof first === "object" && "x" in first && "y" in first) {
+      return `${value.length}-vertex polygon`;
+    }
+  }
+  return "Coordinates unavailable";
+}
+
 export default function LocationSection({ location }: LocationSectionProps) {
   const fields = Object.values(location) as FieldValue<unknown>[];
   const populated = fields.filter((field) => field.value !== null).length;
-  const coordinates = location.coordinates.value ?? "Coordinates unavailable";
+  const coordinatesLabel = formatCoordinates(location.coordinates.value);
 
   return (
     <SectionCard confidenceLabel={confidenceLabel(fields)} fieldsPopulated={populated} fieldsTotal={fields.length} title="Location">
@@ -69,7 +84,7 @@ export default function LocationSection({ location }: LocationSectionProps) {
           />
           <rect fill="#ffffff" fillOpacity="0.82" height="24" rx="4" width="230" x="16" y="120" />
           <text fill="#4a5852" fontFamily="ui-monospace, monospace" fontSize="12" x="26" y="136">
-            {coordinates}
+            {coordinatesLabel}
           </text>
           <rect fill="#ffffff" fillOpacity="0.82" height="24" rx="4" width="118" x="506" y="120" />
           <text fill="#4a5852" fontFamily="ui-monospace, monospace" fontSize="12" x="516" y="136">
@@ -79,7 +94,7 @@ export default function LocationSection({ location }: LocationSectionProps) {
       </div>
       <div id="field-location-geometry_method"><FieldRow evidence={evidence(location.geometry_method)} label="Geometry method" value={location.geometry_method.value} /></div>
       <div id="field-location-shape_type"><FieldRow evidence={evidence(location.shape_type)} label="Shape type" value={location.shape_type.value} /></div>
-      <div id="field-location-coordinates"><FieldRow evidence={evidence(location.coordinates)} isMono label="Coordinates" value={location.coordinates.value} /></div>
+      <div id="field-location-coordinates"><FieldRow evidence={evidence(location.coordinates)} isMono label="Coordinates" value={coordinatesLabel} /></div>
     </SectionCard>
   );
 }

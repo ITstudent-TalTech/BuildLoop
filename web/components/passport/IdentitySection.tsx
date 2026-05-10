@@ -27,21 +27,49 @@ function confidenceLabel(fields: FieldValue<unknown>[]): Confidence {
   return "high";
 }
 
+// Address aliases are meaningful only when they differ from the normalized
+// address (e.g., corner buildings like Lai 1 // Nunne 4 → ["Lai tn 1", "Nunne tn 4"]).
+// For non-corner buildings the resolver stores a single-entry array equal to
+// the full address itself, which adds nothing. Treat those as "not applicable"
+// rather than missing data.
+function formatAliases(
+  aliases: string[] | null | undefined,
+  normalizedAddress: string | null,
+): string | null {
+  if (!aliases || aliases.length === 0) return null;
+  // Single alias that's the same as normalized address: redundant, hide.
+  if (aliases.length === 1 && aliases[0] === normalizedAddress) return null;
+  return aliases.join(" · ");
+}
+
 export default function IdentitySection({ identity }: IdentitySectionProps) {
-  const fields = [
+  // Compute the displayable alias string upfront so we can treat the field as
+  // "not applicable" (rather than "missing") when aliases add no info.
+  const aliasDisplay = formatAliases(
+    identity.address_aliases.value,
+    identity.normalized_address.value,
+  );
+
+  // Stats use a relaxed "populated" check for aliases: if they're not
+  // meaningfully present, the field doesn't count toward populated OR total.
+  const baseFields = [
     identity.ehr_code,
     identity.normalized_address,
-    identity.address_aliases,
     identity.country,
     identity.input_address,
   ] satisfies FieldValue<unknown>[];
-  const populated = fields.filter((field) => field.value !== null).length;
+  const aliasesAreMeaningful = aliasDisplay !== null;
+  const fieldsForConfidence = aliasesAreMeaningful
+    ? [...baseFields, identity.address_aliases]
+    : baseFields;
+  const populated = fieldsForConfidence.filter((field) => field.value !== null).length;
+  const total = fieldsForConfidence.length;
 
   return (
     <SectionCard
-      confidenceLabel={confidenceLabel(fields)}
+      confidenceLabel={confidenceLabel(fieldsForConfidence)}
       fieldsPopulated={populated}
-      fieldsTotal={fields.length}
+      fieldsTotal={total}
       title="Identity"
     >
       <div id="field-identity-ehr_code">
@@ -59,13 +87,15 @@ export default function IdentitySection({ identity }: IdentitySectionProps) {
           value={identity.normalized_address.value}
         />
       </div>
-      <div id="field-identity-address_aliases">
-        <FieldRow
-          evidence={evidence(identity.address_aliases)}
-          label="Address aliases"
-          value={identity.address_aliases.value?.join(" · ") ?? null}
-        />
-      </div>
+      {aliasesAreMeaningful ? (
+        <div id="field-identity-address_aliases">
+          <FieldRow
+            evidence={evidence(identity.address_aliases)}
+            label="Address aliases"
+            value={aliasDisplay}
+          />
+        </div>
+      ) : null}
       <div id="field-identity-country">
         <FieldRow
           evidence={evidence(identity.country)}
