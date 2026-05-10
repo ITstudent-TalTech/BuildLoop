@@ -19,8 +19,8 @@ from app.core.storage import get_bucket_names
 from app.db.session import async_session_factory, engine
 
 logger = logging.getLogger(__name__)
-
 VERSION = "0.1.0"
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -65,16 +65,22 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 def create_app() -> FastAPI:
     settings = get_settings()
-
     app = FastAPI(
         title="BUILDLoop Passport Engine",
         version=VERSION,
         lifespan=lifespan,
     )
 
+    # CORS: FRONTEND_ORIGIN is comma-separated to allow simultaneous local dev
+    # and prod-frontend access (e.g. http://localhost:3000,https://app.vercel.app).
+    allowed_origins = [
+        origin.strip()
+        for origin in settings.frontend_origin.split(",")
+        if origin.strip()
+    ]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[settings.frontend_origin],
+        allow_origins=allowed_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -92,11 +98,3 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # add Vercel URL here when deployed
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
